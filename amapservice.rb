@@ -89,7 +89,7 @@ module Amap
                 @options.each { |key, value|
                     if value.is_a?(Array)
                         a2s = value.to_s
-                        params += "&#{key}=#{a2s[1,a2s.length-1]}"
+                        params += "&#{key}=#{a2s[1,a2s.length-2].gsub(' ','')}"
                     else
                         params += "&#{key}=#{value}"
                     end
