@@ -16,13 +16,13 @@ class DDObj:
 
 class Ele:
 
-    def __init__(self, label,data_type, data_len,min, max,lsb_numi,lsb_denomi):
+    def __init__(self, label,data_type, data_len,min, max,lsb_nume,lsb_denomi):
         self.label = label
         self.data_type = data_type
         self.data_len = data_len
         self.min = min
         self.max = max
-        self.lsb_numi = lsb_numi
+        self.lsb_nume = lsb_nume
         self.lsb_denomi = lsb_denomi
 
 class DDStruct:

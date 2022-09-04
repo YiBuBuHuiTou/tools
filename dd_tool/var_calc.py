@@ -43,12 +43,12 @@ def convert2DD(struct_name, ele, index):
     ddobj.code_label = struct_name + '[{}]'.format(index)
     ddobj.code_type = ele.data_type
     #计算最小值
-    ddobj.code_min = data_format(ele.min * ele.lsb_denomi / ele.lsb_numi)
+    ddobj.code_min = data_format(ele.min * ele.lsb_denomi / ele.lsb_nume)
     #计算最大值
-    ddobj.code_max = data_format(ele.max * ele.lsb_denomi / ele.lsb_numi)
+    ddobj.code_max = data_format(ele.max * ele.lsb_denomi / ele.lsb_nume)
     #LSB
-    ddobj.code_lsb_nume = ele.lsb_denomi
-    ddobj.code_lsb_denomi = ele.lsb_numi
+    ddobj.code_lsb_nume = ele.lsb_nume
+    ddobj.code_lsb_denomi = ele.lsb_denomi
 
     return ddobj
 
