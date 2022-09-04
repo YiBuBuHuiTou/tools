@@ -1,32 +1,34 @@
 class DDObj:
 
     def __init__(self):
-        self.label = ''
-        self.desc = ''
-        self.label_min = ''
-        self.label_max = ''
-        self.resolution = ''
-        self.code_label = ''
-        self.code_min = ''
-        self.code_max = ''
-        self.code_lsb_nume = ''
-        self.code_lsb_denomi = ''
+        self.label = None
+        self.desc = None
+        self.label_min = None
+        self.label_max = None
+        self.resolution = None
+        self.code_label = None
+        self.code_type = None
+        self.code_min = None
+        self.code_max = None
+        self.code_lsb_nume = None
+        self.code_lsb_denomi = None
 
 
-class TypeLen:
+class Ele:
 
-    def __len__(self):
-        self.label = ''
-        self.data_len = ''
-
-    def __init__(self, label, data_len):
+    def __init__(self, label,data_type, data_len,min, max,lsb_numi,lsb_denomi):
         self.label = label
+        self.data_type = data_type
         self.data_len = data_len
-
+        self.min = min
+        self.max = max
+        self.lsb_numi = lsb_numi
+        self.lsb_denomi = lsb_denomi
 
 class DDStruct:
-    def __init__(self):
-        self.elements = []
+    def __init__(self, elements, struct_name):
+        self.elements = elements
+        self.struct_name = struct_name
         self.struct_size = None
 
 
