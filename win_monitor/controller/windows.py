@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import QMainWindow
 from configparser import ConfigParser
 import os
-import windows_obj
+from controller import windows_obj
 
-from ui import Main
+from ..ui import Main
 
-CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/config/config.ini'
+CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 
 
 def load_config(file):
@@ -14,6 +14,10 @@ def load_config(file):
     config.read(file, encoding="utf-8")
     print(config)
     win_obj = windows_obj.WinObj()
+    # 监听周期
+    win_obj.cycle = config.get(section='default', option='cycle')
+    # 延迟
+    win_obj.cycle = config.get(section='default', option='delay')
     # 基本信息
     win_obj.user_name = config.get(section='user', option='name')
     win_obj.job_number = config.get(section='user', option='job_number')
@@ -37,8 +41,8 @@ def load_config(file):
     # 外部工具
     # TODO
 
+    print(win_obj.__dict__)
     return win_obj
-
 
 def save_config():
     pass
@@ -50,5 +54,18 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.setupUi(self)
         self.data = load_config(CONFIG_FILE)
 
+    # 变更模式时的事件
+    def on_change_mode_handler(self):
+        pass
+
+    # OK按钮事件
+    def on_click_ok_handler(self):
+        pass
+
+    # CANCEL 按钮事件
+    def on_click_cancel_handler(self):
+        pass
+
+    # TODO
     def startEmbedTool(self, tool):
         pass

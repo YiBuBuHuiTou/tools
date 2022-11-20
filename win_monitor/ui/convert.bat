@@ -1,0 +1,1 @@
+pyuic5 -o Main.py Main.ui

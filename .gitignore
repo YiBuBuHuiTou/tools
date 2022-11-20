@@ -1,0 +1,12 @@
+.idea/.gitignore
+.idea/misc.xml
+.idea/modules.xml
+.idea/tools.iml
+.idea/vcs.xml
+.idea/workspace.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/Project_Default.xml
+dd_tool/__pycache__/dd_obj.cpython-38.pyc
+win_monitor/controller/__pycache__/windows.cpython-38.pyc
+win_monitor/controller/__pycache__/windows_obj.cpython-38.pyc
+win_monitor/ui/__pycache__/Main.cpython-38.pyc

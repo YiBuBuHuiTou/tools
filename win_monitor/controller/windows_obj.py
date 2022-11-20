@@ -1,7 +1,7 @@
 from enum import Enum
 import os
 
-DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/data/data.txt'
+DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../db/data/data.txt'
 
 
 class Mode(Enum):
@@ -24,11 +24,19 @@ class DataBase:
         self.password = None
 
 
+class Attendance:
+    def __init__(self):
+        self.startTime = None
+        self.endTime = None
+
+
 class WinObj:
     def __init__(self):
         self.user_name = None
         self.job_number = None
         self.email = None
+        self.cycle = None
+        self.delay = None
         self.local_data = DEFAULT_DATA_FILE
         self.mode = Mode.ONLINE
         self.remind = Remind.TRUE
