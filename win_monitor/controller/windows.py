@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QMainWindow
 from configparser import ConfigParser
 import os
-from controller import windows_obj
-
-from ..ui import Main
+from . import windows_obj
+from win_monitor.action import action
+from win_monitor.ui import Main
 
 CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 
@@ -15,9 +15,9 @@ def load_config(file):
     print(config)
     win_obj = windows_obj.WinObj()
     # 监听周期
-    win_obj.cycle = config.get(section='default', option='cycle')
+    win_obj.cycle = int(config.get(section='default', option='cycle'))
     # 延迟
-    win_obj.cycle = config.get(section='default', option='delay')
+    win_obj.delay = int(config.get(section='default', option='delay'))
     # 基本信息
     win_obj.user_name = config.get(section='user', option='name')
     win_obj.job_number = config.get(section='user', option='job_number')
@@ -53,6 +53,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.data = load_config(CONFIG_FILE)
+        monitor = action.Monitor()
+        action.locke_monitor(monitor,self.data.cycle, self.data.delay)
 
     # 变更模式时的事件
     def on_change_mode_handler(self):
