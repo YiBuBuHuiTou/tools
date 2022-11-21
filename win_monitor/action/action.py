@@ -13,6 +13,7 @@ class OsStatus(Enum):
 
 # 判断windows 是否锁屏  用户登录状态下，没有LogonUI.exe进程
 # 多用户状态（switch user？ 服务器系统开启多用户远程？）下失效，多用户状态下会存在多个LogonUI.exe进程
+# 性能有点低 会导致监测周期不正确，大约0.6秒 TODO 下次改善
 def isLocked():
     lockFlag = False
     for proc in psutil.process_iter():
@@ -33,7 +34,6 @@ def locke_monitor(monitor, cycle, delay):
     while True:
         lock_status = isLocked()
         status_change = False
-        print("start =" + str(datetime.datetime.now()))
         # 判断锁屏状态是否变化
         if lock_status is True and status_old == OsStatus.UNLOCK or lock_status is False and status_old == OsStatus.LOCKED:
             delay = delay - 1
@@ -47,9 +47,6 @@ def locke_monitor(monitor, cycle, delay):
 
         if status_change is True:
             monitor.win_status_signal.emit(status_old.value)
-        print("end =" + str(datetime.datetime.now()))
-        print("cycle =" + str(cycle))
-
         # 检测周期
         time.sleep(cycle)
 
