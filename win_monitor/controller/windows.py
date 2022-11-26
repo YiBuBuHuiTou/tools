@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QMainWindow
 from configparser import ConfigParser
 import os
-from . import windows_obj
-from win_monitor.action import action
-from win_monitor.ui import Main
+from controller import windows_obj
+from ui import Main
+from action import action
 
 CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 
@@ -44,6 +44,7 @@ def load_config(file):
     print(win_obj.__dict__)
     return win_obj
 
+
 def save_config():
     pass
 
@@ -53,8 +54,15 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.data = load_config(CONFIG_FILE)
-        monitor = action.Monitor()
-        action.locke_monitor(monitor,self.data.cycle, self.data.delay)
+        # monitor = action.Monitor()
+        # action.locke_monitor(monitor,self.data.cycle, self.data.delay)
+        try:
+            thread = action.BackGroundTask("backgroundTask", "sleep_monitor", self.data)
+            # 设置为守护线程 （默认也是false）
+            thread.daemon = False
+            thread.start()
+        except:
+            print("线程启动异常")
 
     # 变更模式时的事件
     def on_change_mode_handler(self):

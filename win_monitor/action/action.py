@@ -4,12 +4,42 @@ import psutil
 import pymysql
 from enum import Enum
 from PyQt5.QtCore import pyqtSignal, QObject
-
+import threading
 
 class OsStatus(Enum):
     UNLOCK = 0
     LOCKED = 1
 
+def testconnect():
+    db = pymysql.connect(host='127.0.0.1',
+                         port=3306,
+                         user='root',
+                         password='venus',
+                         database='monitor',
+                         charset='utf8')
+
+    cursor = db.cursor()
+    cursor.execute("select version()")
+    data = cursor.fetchone()
+    print("连接成功")
+    db.close()
+
+
+# Monitor信号与槽
+class Monitor(QObject):
+    # 用户登录状态信号
+    win_status_signal = pyqtSignal(int)
+
+    def __init__(self):
+        super(Monitor, self).__init__()
+        self.win_status_signal.connect(self.win_change_handler)
+
+    # 用户登录状况变化处理函数
+    def win_change_handler(self, status):
+        if status == OsStatus.LOCKED.value:
+            print("屏幕已锁定")
+        elif status == OsStatus.UNLOCK.value:
+            print("屏幕已解锁")
 
 # 判断windows 是否锁屏  用户登录状态下，没有LogonUI.exe进程
 # 多用户状态（switch user？ 服务器系统开启多用户远程？）下失效，多用户状态下会存在多个LogonUI.exe进程
@@ -51,33 +81,14 @@ def locke_monitor(monitor, cycle, delay):
         time.sleep(cycle)
 
 
-def testconnect():
-    db = pymysql.connect(host='127.0.0.1',
-                         port=3306,
-                         user='root',
-                         password='venus',
-                         database='monitor',
-                         charset='utf8')
+class BackGroundTask(threading.Thread):
+    def __init__(self, thread_id, thread_name, win_obj):
+        threading.Thread.__init__(self)
+        self.thread_id = thread_id
+        self.thread_name = thread_name
+        self.win_obj = win_obj
 
-    cursor = db.cursor()
-    cursor.execute("select version()")
-    data = cursor.fetchone()
-    print("连接成功")
-    db.close()
+    def run(self):
+        locke_monitor(Monitor(), self.win_obj.cycle, self.win_obj.delay)
 
 
-# Monitor信号与槽
-class Monitor(QObject):
-    # 用户登录状态信号
-    win_status_signal = pyqtSignal(int)
-
-    def __init__(self):
-        super(Monitor, self).__init__()
-        self.win_status_signal.connect(self.win_change_handler)
-
-    # 用户登录状况变化处理函数
-    def win_change_handler(self, status):
-        if status == OsStatus.LOCKED.value:
-            print("屏幕已锁定")
-        elif status == OsStatus.UNLOCK.value:
-            print("屏幕已解锁")
