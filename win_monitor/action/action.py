@@ -6,15 +6,23 @@ from enum import Enum
 from PyQt5.QtCore import pyqtSignal, QObject
 import threading
 
+
 class OsStatus(Enum):
     UNLOCK = 0
     LOCKED = 1
 
-def testconnect():
-    db = pymysql.connect(host='127.0.0.1',
+
+def testConnect():
+    # db = pymysql.connect(host='127.0.0.1',
+    #                      port=3306,
+    #                      user='root',
+    #                      password='venus',
+    #                      database='monitor',
+    #                      charset='utf8')
+    db = pymysql.connect(host='192.168.2.54',
                          port=3306,
                          user='root',
-                         password='venus',
+                         password='password',
                          database='monitor',
                          charset='utf8')
 
@@ -41,6 +49,45 @@ class Monitor(QObject):
         elif status == OsStatus.UNLOCK.value:
             print("屏幕已解锁")
 
+    # 监听windows 是否登录
+    # 周期： cycle, 灵敏度：delay
+    def locke_monitor(self, cycle, delay):
+        delay_clone = delay
+        status_old = OsStatus.LOCKED if isLocked() else OsStatus.UNLOCK
+        # 初始信号
+        self.win_status_signal.emit(status_old.value)
+
+        while True:
+            lock_status = isLocked()
+            status_change = False
+            # 判断锁屏状态是否变化
+            if lock_status is True and status_old == OsStatus.UNLOCK or lock_status is False and status_old == OsStatus.LOCKED:
+                delay = delay - 1
+            else:
+                delay = delay_clone
+
+            if delay <= 0:
+                status_old = OsStatus.LOCKED if lock_status is True else OsStatus.UNLOCK
+                status_change = True
+                delay = delay_clone
+
+            if status_change is True:
+                self.win_status_signal.emit(status_old.value)
+            # 检测周期
+            time.sleep(cycle)
+
+
+class BackGroundTask(threading.Thread):
+    def __init__(self, thread_id, thread_name, win_obj):
+        threading.Thread.__init__(self)
+        self.thread_id = thread_id
+        self.thread_name = thread_name
+        self.win_obj = win_obj
+
+    def run(self):
+        Monitor().locke_monitor(self.win_obj.cycle, self.win_obj.delay)
+
+
 # 判断windows 是否锁屏  用户登录状态下，没有LogonUI.exe进程
 # 多用户状态（switch user？ 服务器系统开启多用户远程？）下失效，多用户状态下会存在多个LogonUI.exe进程
 # 性能有点低 会导致监测周期不正确，大约0.6秒 TODO 下次改善
@@ -52,43 +99,5 @@ def isLocked():
             break
     return lockFlag
 
-
-# 监听windows 是否登录
-# 周期： cycle, 灵敏度：delay
-def locke_monitor(monitor, cycle, delay):
-    delay_clone = delay
-    status_old = OsStatus.LOCKED if isLocked() else OsStatus.UNLOCK
-    # 初始信号
-    monitor.win_status_signal.emit(status_old.value)
-
-    while True:
-        lock_status = isLocked()
-        status_change = False
-        # 判断锁屏状态是否变化
-        if lock_status is True and status_old == OsStatus.UNLOCK or lock_status is False and status_old == OsStatus.LOCKED:
-            delay = delay - 1
-        else:
-            delay = delay_clone
-
-        if delay <= 0:
-            status_old = OsStatus.LOCKED if lock_status is True else OsStatus.UNLOCK
-            status_change = True
-            delay = delay_clone
-
-        if status_change is True:
-            monitor.win_status_signal.emit(status_old.value)
-        # 检测周期
-        time.sleep(cycle)
-
-
-class BackGroundTask(threading.Thread):
-    def __init__(self, thread_id, thread_name, win_obj):
-        threading.Thread.__init__(self)
-        self.thread_id = thread_id
-        self.thread_name = thread_name
-        self.win_obj = win_obj
-
-    def run(self):
-        locke_monitor(Monitor(), self.win_obj.cycle, self.win_obj.delay)
 
 

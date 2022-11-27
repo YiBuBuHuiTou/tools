@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5 import QtWidgets
 from configparser import ConfigParser
 import os
 from controller import windows_obj
@@ -8,6 +9,7 @@ from action import action
 CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 
 
+# 加载配置
 def load_config(file):
     config = ConfigParser()
     # 读取配置文件
@@ -45,20 +47,28 @@ def load_config(file):
     return win_obj
 
 
+# 保存配置
 def save_config():
     pass
 
 
 class MainWindow(QMainWindow, Main.Ui_MainWindow):
+    # 保存用户配置信号
+    # config_save_signal = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.data = load_config(CONFIG_FILE)
-        # monitor = action.Monitor()
-        # action.locke_monitor(monitor,self.data.cycle, self.data.delay)
+
+        # self.config_save_signal.connect(self.config_save_handler)
+        # self.buttonBox.standardButton(QtWidgets.QDialogButtonBox.OK).clicked.connect(self.config_save_handler)
+        self.buttonBox.accepted.connect(self.config_save_handler)
+        self.buttonBox.rejected.connect(self.on_click_cancel_handler)
+
         try:
             thread = action.BackGroundTask("backgroundTask", "sleep_monitor", self.data)
-            # 设置为守护线程 （默认也是false）
+            # 设置为非守护线程
             thread.daemon = False
             thread.start()
         except:
@@ -66,15 +76,19 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
     # 变更模式时的事件
     def on_change_mode_handler(self):
-        pass
+        print("变更配置模式")
+        # TODO
 
     # OK按钮事件
-    def on_click_ok_handler(self):
-        pass
+    def config_save_handler(self, win_obj):
+        print("配置保存")
+        # TODO
 
     # CANCEL 按钮事件
     def on_click_cancel_handler(self):
-        pass
+        print("画面关闭")
+        self.close()
+        # TODO
 
     # TODO
     def startEmbedTool(self, tool):
