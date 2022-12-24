@@ -12,7 +12,7 @@ class OsStatus(Enum):
     LOCKED = 1
 
 
-def testConnect():
+def connectdb():
     # db = pymysql.connect(host='127.0.0.1',
     #                      port=3306,
     #                      user='root',

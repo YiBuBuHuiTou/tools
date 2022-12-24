@@ -5,6 +5,7 @@ import os
 from controller import windows_obj
 from ui import Main
 from action import action
+from db import sql
 
 CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 
@@ -14,7 +15,6 @@ def load_config(file):
     config = ConfigParser()
     # 读取配置文件
     config.read(file, encoding="utf-8")
-    print(config)
     win_obj = windows_obj.WinObj()
     # 监听周期
     win_obj.cycle = int(config.get(section='default', option='cycle'))
@@ -24,6 +24,11 @@ def load_config(file):
     win_obj.user_name = config.get(section='user', option='name')
     win_obj.job_number = config.get(section='user', option='job_number')
     win_obj.email = config.get(section='user', option='email')
+    win_obj.start = config.get(section='user', option='start')
+    win_obj.end = config.get(section='user', option='end')
+    win_obj.description = config.get(section='user', option='description')
+
+
     data_dir = config.get(section='user', option='local_data')
     win_obj.local_data = data_dir if data_dir != '' else windows_obj.DEFAULT_DATA_FILE
     # 模式  个人/办公
@@ -65,7 +70,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         # self.buttonBox.standardButton(QtWidgets.QDialogButtonBox.OK).clicked.connect(self.config_save_handler)
         self.buttonBox.accepted.connect(self.config_save_handler)
         self.buttonBox.rejected.connect(self.on_click_cancel_handler)
-
+        sql.user_regist(self.data)
         try:
             thread = action.BackGroundTask("backgroundTask", "sleep_monitor", self.data)
             # 设置为非守护线程
