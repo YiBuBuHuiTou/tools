@@ -148,6 +148,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.data = load_config()
         self.setDefaultData()
         self.add_tool.triggered.connect(self.add_tool_handler)
+        self.data_dir.clicked.connect(self.change_log_dir_hamdler)
         # self.config_save_signal.connect(self.config_save_handler)
         # self.buttonBox.standardButton(QtWidgets.QDialogButtonBox.OK).clicked.connect(self.config_save_handler)
         self.buttonBox.accepted.connect(self.config_save_handler)
@@ -217,11 +218,11 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             action.setObjectName(key)
             action.setText(key)
             # action.triggered.connect(lambda: self.openExeHandler(value))
-            action.triggered.connect(functools.partial(self.openExeHandler,value))
+            action.triggered.connect(functools.partial(self.open_exe_handler,value))
             self.external_tools.addAction(action)
 
     # 打开外部工具
-    def openExeHandler(self, exe):
+    def open_exe_handler(self, exe):
         print("打开外部工具: " + exe)
         try:
             subprocess.run(exe)
@@ -240,6 +241,11 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         finally:
             self.data = load_config()
 
+    # 选择log文件夹
+    def change_log_dir_hamdler(self, tool):
+        dir = QFileDialog.getExistingDirectory(self, "选择文件夹", "./")
+        self.local_data.setText(dir)
+
     # 变更模式时的事件
     def on_change_mode_handler(self):
         print("变更配置模式")
@@ -256,6 +262,4 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.close()
         # TODO
 
-    # TODO
-    def startEmbedTool(self, tool):
-        pass
+
