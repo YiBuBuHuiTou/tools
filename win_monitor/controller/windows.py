@@ -149,6 +149,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.setDefaultData()
         self.add_tool.triggered.connect(self.add_tool_handler)
         self.data_dir.clicked.connect(self.change_log_dir_hamdler)
+        self.offline.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.OFFLINE.name ))
+        self.online.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.ONLINE.name ))
         # self.config_save_signal.connect(self.config_save_handler)
         # self.buttonBox.standardButton(QtWidgets.QDialogButtonBox.OK).clicked.connect(self.config_save_handler)
         self.buttonBox.accepted.connect(self.config_save_handler)
@@ -247,9 +249,39 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.local_data.setText(dir)
 
     # 变更模式时的事件
-    def on_change_mode_handler(self):
-        print("变更配置模式")
+    def on_change_mode_handler(self, mode):
+        print("变更配置模式: " + mode)
         # TODO
+        try:
+            if mode == windows_obj.Mode.ONLINE.name:
+                # 数据库种别
+                self.db_category.setDisabled(False)
+                # 数据库host
+                self.db_host.setDisabled(False)
+                # 数据库端口
+                self.db_port.setDisabled(False)
+                # 数据库名
+                self.db_name.setDisabled(False)
+                # 数据库用户名
+                self.db_username.setDisabled(False)
+                # 数据库密码
+                self.db_password.setDisabled(False)
+                
+            elif mode == windows_obj.Mode.OFFLINE.name:
+                # 数据库种别
+                self.db_category.setDisabled(True)
+                # 数据库host
+                self.db_host.setDisabled(True)
+                # 数据库端口
+                self.db_port.setDisabled(True)
+                # 数据库名
+                self.db_name.setDisabled(True)
+                # 数据库用户名
+                self.db_username.setDisabled(True)
+                # 数据库密码
+                self.db_password.setDisabled(True)
+        except Exception as e:
+            print(e)
 
     # OK按钮事件
     def config_save_handler(self, win_obj):
