@@ -19,7 +19,7 @@ class DataBase:
         self.category = None
         self.host = None
         self.port = None
-        self.data_base = None
+        self.database = None
         self.username = None
         self.password = None
 
@@ -38,7 +38,9 @@ class WinObj:
         self.cycle = None
         self.delay = None
         self.local_data = DEFAULT_DATA_FILE
-        self.mode = Mode.ONLINE
-        self.remind = Remind.TRUE
+        self.mode = Mode.OFFLINE.name
+        self.attendance = Attendance()
+        self.remind = Remind.TRUE.name
         self.database = DataBase()
+        self.external_tools = {}
 

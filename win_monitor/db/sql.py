@@ -1,4 +1,5 @@
 import pymysql
+from controller import windows_obj
 
 
 FIND_USER_BY_JOB_NUM = "select * from user where job_num = %s"
@@ -34,6 +35,11 @@ def db_connect(databse):
 
 
 def user_regist(win_obj):
+    if win_obj.mode == windows_obj.Mode.OFFLINE.name:
+        print("offLine")
+        return
+
+    userId = None
     db = pymysql.connect(host=win_obj.database.host,
                          port=int(win_obj.database.port),
                          user=win_obj.database.username,
@@ -53,4 +59,8 @@ def user_regist(win_obj):
     finally:
         cursor.close()
         db.close()
+
+
+def addRecord(user_id, status):
+    pass
 
