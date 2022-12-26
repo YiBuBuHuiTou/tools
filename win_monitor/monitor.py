@@ -7,7 +7,7 @@ from db import log
 LOGGER = log.LOGGER
 
 if __name__ == "__main__":
-    
+
     if len(sys.argv) <= 1:
         LOGGER.debug("程序正常启动")
         app = QApplication(sys.argv)

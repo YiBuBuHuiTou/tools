@@ -56,8 +56,11 @@ def user_regist(win_obj):
 
         if one is None:
             LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 新用户")
-            cursor.execute(INSERT_USER,[win_obj.user_name, win_obj.job_number, win_obj.email, win_obj.start, win_obj.end, win_obj.description])
+            cursor.execute(INSERT_USER,[win_obj.user_name, win_obj.job_number, win_obj.email, win_obj.attendance.startTime, win_obj.attendance.endTime, win_obj.description])
             db.commit()
+        else:
+            LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 老用户")
+
     except Exception as e:
         db.rollback()
         LOGGER.error("Method = sql#user_regist : 在线模式，新用户插入异常 Exception = " + str(e))
