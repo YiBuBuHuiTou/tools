@@ -483,18 +483,31 @@ border-right-width:0px;</string>
      </property>
     </widget>
    </widget>
-   <widget class="QDialogButtonBox" name="buttonBox">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>530</x>
+      <x>520</x>
       <y>560</y>
-      <width>156</width>
-      <height>23</height>
+      <width>158</width>
+      <height>25</height>
      </rect>
     </property>
-    <property name="standardButtons">
-     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QPushButton" name="save_btn">
+       <property name="text">
+        <string>保存</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancel_btn">
+       <property name="text">
+        <string>取消</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

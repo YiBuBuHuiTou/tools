@@ -67,77 +67,6 @@ class ConfigIni:
         except Exception as e:
             print(e)
 
-
-# 加载配置
-def load_config():
-    config = ConfigIni()
-    # 读取配置文件
-    win_obj = windows_obj.WinObj()
-    # 监听周期
-    win_obj.cycle = int(config.getConfig('default', 'cycle', default=1))
-    # 延迟
-    win_obj.delay = int(config.getConfig('default', 'delay', default=0))
-    # 基本信息
-    # 用户名
-    win_obj.user_name = config.getConfig('user', 'name', default="test_user")
-    # 工号
-    win_obj.job_number = config.getConfig('user', 'job_number', default="000000")
-    # 邮箱
-    win_obj.email = config.getConfig('user', 'email', default="test@test.com")
-    # 描述
-    win_obj.description = config.getConfig('user', 'description', default="This is test user!!!!")
-
-    # 考勤
-    attendance = windows_obj.Attendance()
-    # 考勤开始时间
-    attendance.startTime = config.getConfig('attendance', 'start', default="9:00")
-    # 考勤结束时间
-    attendance.endTime = config.getConfig('attendance', 'end', default="18:00")
-    win_obj.attendance = attendance
-
-    # log 文件
-    win_obj.local_data = config.getConfig('user', 'local_data', default=windows_obj.DEFAULT_DATA_FILE)
-
-    # 模式  离线/在线
-    win_obj.mode = config.getConfig('mode', 'mode', default=windows_obj.Mode.OFFLINE.name)
-
-    # 是否开启提示
-    win_obj.remind = config.getConfig('mode', 'remind', default=windows_obj.Remind.FALSE.name)
-
-    # 数据库信息
-    database = windows_obj.DataBase()
-    # 数据库种类
-    database.category = config.getConfig('database', 'category', default="Mysql")
-    # 数据库ip
-    database.host = config.getConfig('database', 'host', default="127.0.0.1")
-    # 数据库端口
-    database.port = config.getConfig('database', 'port', default=3306)
-    # 数据库名字
-    database.database = config.getConfig('database', 'database', default="test")
-    # 数据库用户名
-    database.username = config.getConfig('database', 'username', default="root")
-    # 数据库密码
-    database.password = config.getConfig('database', 'password', default="root")
-    win_obj.database = database
-
-    # 外部工具
-    tool_names = config.getOptions('external_tools', default="追加")
-    external_tools = {}
-    for name in tool_names:
-        external_tools[name] = config.getConfig("external_tools", name)
-    win_obj.external_tools = external_tools
-
-    print(win_obj.__dict__)
-    print(win_obj.database.__dict__)
-    print(win_obj.attendance.__dict__)
-    return win_obj
-
-
-# 保存配置
-def save_config():
-    pass
-
-
 class MainWindow(QMainWindow, Main.Ui_MainWindow):
     # 保存用户配置信号
     # config_save_signal = pyqtSignal(str)
@@ -145,16 +74,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        self.data = load_config()
+        self.config = ConfigIni()
+        self.data = self.load_config()
         self.setDefaultData()
-        self.add_tool.triggered.connect(self.add_tool_handler)
-        self.data_dir.clicked.connect(self.change_log_dir_hamdler)
-        self.offline.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.OFFLINE.name ))
-        self.online.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.ONLINE.name ))
-        # self.config_save_signal.connect(self.config_save_handler)
-        # self.buttonBox.standardButton(QtWidgets.QDialogButtonBox.OK).clicked.connect(self.config_save_handler)
-        self.buttonBox.accepted.connect(self.config_save_handler)
-        self.buttonBox.rejected.connect(self.on_click_cancel_handler)
+        self.singal_and_slot()
         sql.user_regist(self.data)
         try:
             thread = action.BackGroundTask("backgroundTask", "sleep_monitor", self.data)
@@ -163,6 +86,85 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             thread.start()
         except:
             print("线程启动异常")
+
+    # 信号与槽， 追加监听事件
+    def singal_and_slot(self):
+        # 菜单栏追加外部工具按钮
+        self.add_tool.triggered.connect(self.add_tool_handler)
+        # 日志文件选择按钮
+        self.data_dir.clicked.connect(self.change_log_dir_hamdler)
+        # 离线按钮
+        self.offline.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.OFFLINE.name ))
+        # 在线按钮
+        self.online.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.ONLINE.name ))
+        # 保存按钮
+        self.save_btn.clicked.connect(self.config_save_handler)
+        # 取消按钮
+        self.cancel_btn.clicked.connect(self.on_click_cancel_handler)
+
+
+    # 加载配置
+    def load_config(self):
+        # 读取配置文件
+        win_obj = windows_obj.WinObj()
+        # 监听周期
+        win_obj.cycle = int(self.config.getConfig('default', 'cycle', default=1))
+        # 延迟
+        win_obj.delay = int(self.config.getConfig('default', 'delay', default=0))
+        # 基本信息
+        # 用户名
+        win_obj.user_name = self.config.getConfig('user', 'name', default="test_user")
+        # 工号
+        win_obj.job_number = self.config.getConfig('user', 'job_number', default="000000")
+        # 邮箱
+        win_obj.email = self.config.getConfig('user', 'email', default="test@test.com")
+        # 描述
+        win_obj.description = self.config.getConfig('user', 'description', default="This is test user!!!!")
+
+        # 考勤
+        attendance = windows_obj.Attendance()
+        # 考勤开始时间
+        attendance.startTime = self.config.getConfig('attendance', 'start', default="9:00")
+        # 考勤结束时间
+        attendance.endTime = self.config.getConfig('attendance', 'end', default="18:00")
+        win_obj.attendance = attendance
+
+        # log 文件
+        win_obj.local_data = self.config.getConfig('user', 'local_data', default=windows_obj.DEFAULT_DATA_FILE)
+
+        # 模式  离线/在线
+        win_obj.mode = self.config.getConfig('mode', 'mode', default=windows_obj.Mode.OFFLINE.name)
+
+        # 是否开启提示
+        win_obj.remind = self.config.getConfig('mode', 'remind', default=windows_obj.Remind.FALSE.name)
+
+        # 数据库信息
+        database = windows_obj.DataBase()
+        # 数据库种类
+        database.category = self.config.getConfig('database', 'category', default="Mysql")
+        # 数据库ip
+        database.host = self.config.getConfig('database', 'host', default="127.0.0.1")
+        # 数据库端口
+        database.port = self.config.getConfig('database', 'port', default=3306)
+        # 数据库名字
+        database.database = self.config.getConfig('database', 'database', default="test")
+        # 数据库用户名
+        database.username = self.config.getConfig('database', 'username', default="root")
+        # 数据库密码
+        database.password = self.config.getConfig('database', 'password', default="root")
+        win_obj.database = database
+
+        # 外部工具
+        tool_names = self.config.getOptions('external_tools', default="追加")
+        external_tools = {}
+        for name in tool_names:
+            external_tools[name] = self.config.getConfig("external_tools", name)
+        win_obj.external_tools = external_tools
+
+        print(win_obj.__dict__)
+        print(win_obj.database.__dict__)
+        print(win_obj.attendance.__dict__)
+        return win_obj
 
     # 显示读取的数据
     def setDefaultData(self):
@@ -187,13 +189,13 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             self.online.setChecked(False)
             self.offline.setChecked(True)
         # 数据库种别
-        self.db_category.setCurrentIndex(0)
+        self.db_category.setCurrentIndex(0)  # TODO  固定值
         # 本地数据
         self.local_data.setText(self.data.local_data)
         # 数据库host
         self.db_host.setText(self.data.database.host)
         # 数据库端口
-        self.db_port.setText(self.data.database.port)
+        self.db_port.setText(str(self.data.database.port))
         # 数据库名
         self.db_name.setText(self.data.database.database)
         # 数据库用户名
@@ -236,12 +238,11 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         file, _ = QFileDialog.getOpenFileName(self, "选择文件", "C:\\", "All Files (*.exe *.html *.htm)")
         print("file : " + file)
         try:
-            config = ConfigIni()
-            config.setOption("external_tools", os.path.splitext(os.path.basename(file))[0], file)
+            self.config.setOption("external_tools", os.path.splitext(os.path.basename(file))[0], file)
         except Exception as e:
             print(e)
         finally:
-            self.data = load_config()
+            self.data = self.load_config()
 
     # 选择log文件夹
     def change_log_dir_hamdler(self, tool):
@@ -266,7 +267,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
                 self.db_username.setDisabled(False)
                 # 数据库密码
                 self.db_password.setDisabled(False)
-                
+
             elif mode == windows_obj.Mode.OFFLINE.name:
                 # 数据库种别
                 self.db_category.setDisabled(True)
@@ -284,8 +285,62 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             print(e)
 
     # OK按钮事件
-    def config_save_handler(self, win_obj):
-        print("配置保存")
+    def config_save_handler(self):
+        try:
+            # 监听周期
+            self.config.setOption('default','cycle', str(self.cycle.value()))
+            # 延迟
+            self.config.setOption('default','delay', str(self.delay.value()))
+
+            # 基本信息
+            # 用户名
+            self.config.setOption('user','name', self.user_name.text())
+            # 工号
+            self.config.setOption('user','job_number', self.job_number.text())
+            # 邮箱
+            self.config.setOption('user','email', self.email.text())
+            # 描述
+            self.config.setOption('user','description', self.description.toPlainText())
+            # log 文件
+            self.config.setOption('user','local_data', self.local_data.text())
+
+            # 考勤
+            # 考勤开始时间
+            self.config.setOption('attendance','start', self.start_time.time().toString("hh:mm"))
+            # 考勤结束时间
+            self.config.setOption('attendance','end', self.end_time.time().toString("hh:mm"))
+
+            # 模式  离线/在线
+            if self.online.isChecked() is True:
+                self.config.setOption('mode', 'mode', windows_obj.Mode.ONLINE.name)
+            elif  self.offline.isChecked() is True:
+                self.config.setOption('mode', 'mode', windows_obj.Mode.OFFLINE.name)
+
+            # 是否开启提示
+            if self.remind.isChecked() is True:
+                self.config.setOption('mode', 'remind', windows_obj.Remind.TRUE.name)
+            elif self.unremind.isChecked() is True:
+                self.config.setOption('mode', 'remind', windows_obj.Remind.FALSE.name)
+
+            # 数据库信息
+            # 数据库种类
+            self.config.setOption('database','category', self.db_category.currentText())
+            # 数据库ip
+            self.config.setOption('database','host', self.db_host.text())
+            # 数据库端口
+            self.config.setOption('database','port', self.db_port.text())
+            # 数据库名字
+            self.config.setOption('database','database', self.db_name.text())
+            # 数据库用户名
+            self.config.setOption('database','username', self.db_username.text())
+            # 数据库密码
+            self.config.setOption('database','password', self.db_password.text())
+
+
+            print("配置保存: " + str( self.data.__dict__) )
+        except Exception as e:
+            print(e)
+        self.close()
         # TODO
 
     # CANCEL 按钮事件
