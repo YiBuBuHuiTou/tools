@@ -5,6 +5,10 @@ import pymysql
 from enum import Enum
 from PyQt5.QtCore import pyqtSignal, QObject
 import threading
+from db import sql, log
+
+LOGGER = log.LOGGER
+
 
 
 class OsStatus(Enum):
@@ -44,10 +48,11 @@ class Monitor(QObject):
 
     # 用户登录状况变化处理函数
     def win_change_handler(self, status):
+
         if status == OsStatus.LOCKED.value:
-            print("屏幕已锁定")
+            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已锁定")
         elif status == OsStatus.UNLOCK.value:
-            print("屏幕已解锁")
+            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已解锁")
 
     # 监听windows 是否登录
     # 周期： cycle, 灵敏度：delay

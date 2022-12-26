@@ -1,6 +1,9 @@
 import pymysql
 from controller import windows_obj
+from db import log
 
+
+LOGGER = log.LOGGER
 
 FIND_USER_BY_JOB_NUM = "select * from user where job_num = %s"
 
@@ -36,7 +39,7 @@ def db_connect(databse):
 
 def user_regist(win_obj):
     if win_obj.mode == windows_obj.Mode.OFFLINE.name:
-        print("offLine")
+        LOGGER.debug("Method = sql#user_regist : 离线模式，不使用远程数据库")
         return
 
     userId = None
@@ -50,12 +53,14 @@ def user_regist(win_obj):
     try:
         cursor.execute(FIND_USER_BY_JOB_NUM,win_obj.job_number)
         one = cursor.fetchone()
+
         if one is None:
+            LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 新用户")
             cursor.execute(INSERT_USER,[win_obj.user_name, win_obj.job_number, win_obj.email, win_obj.start, win_obj.end, win_obj.description])
             db.commit()
     except Exception as e:
-        print("user_regist err: " + str(e))
         db.rollback()
+        LOGGER.error("Method = sql#user_regist : 在线模式，新用户插入异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()

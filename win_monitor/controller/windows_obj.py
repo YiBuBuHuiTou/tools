@@ -1,7 +1,8 @@
 from enum import Enum
 import os
+from db import log
 
-DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../db/data/data.txt'
+# DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../db/data/data.txt'
 
 
 class Mode(Enum):
@@ -37,7 +38,7 @@ class WinObj:
         self.email = None
         self.cycle = None
         self.delay = None
-        self.local_data = DEFAULT_DATA_FILE
+        self.local_data = log.DEFAULT_DATA_FILE
         self.mode = Mode.OFFLINE.name
         self.attendance = Attendance()
         self.remind = Remind.TRUE.name

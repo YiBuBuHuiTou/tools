@@ -1,24 +1,25 @@
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTime
-from configparser import ConfigParser
+from configparser import SafeConfigParser
 import functools
 import subprocess
 import os
 from controller import windows_obj
 from ui import Main
 from action import action
-from db import sql
+from db import sql, log
 
-CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 
+# CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
+LOGGER = log.LOGGER
 
 # ini 配置文件解析
 class ConfigIni:
 
     def __init__(self):
-        self.config = ConfigParser()
-        self.config.read(CONFIG_FILE, encoding="utf-8")
+        self.config = SafeConfigParser()
+        self.config.read(log.CONFIG_FILE, encoding="utf-8")
 
     # 获取 单个 配置
     def getConfig(self, section, option, default=None):
@@ -28,8 +29,9 @@ class ConfigIni:
             if data is None:
                 data = default
         except Exception as e:
-            print(e)
             data = default
+            LOGGER.error("Method = ConfigIni#getConfig : ini 获取配置异常： section = " + section + " option = " + option)
+            LOGGER.error("Method = ConfigIni#getConfig : 异常信息： Exception = " + str(e))
         return data
 
     # 获取 section下所有数据
@@ -40,9 +42,9 @@ class ConfigIni:
             if tools is None:
                 tools = [default]
         except Exception as e:
-            print(e)
             tools = [default]
-
+            LOGGER.error("Method = ConfigIni#getOptions : ini 获取配置异常： section = " + section)
+            LOGGER.error("Method = ConfigIni#getOptions : 异常信息： Exception = " + str(e))
         return tools
 
     # 追加section
@@ -51,10 +53,12 @@ class ConfigIni:
             # 追加section
             self.config.add_section(section)
             # 写入文件
-            with open(CONFIG_FILE, "w+", encoding="utf-8") as f:
+            with open(log.CONFIG_FILE, "w+", encoding="utf-8") as f:
                 self.config.write(f)
         except Exception as e:
             print("addSection : " + e)
+            LOGGER.error("Method = ConfigIni#addSection : ini 获取配置异常： section = " + section)
+            LOGGER.error("Method = ConfigIni#addSection : 异常信息： Exception = " + str(e))
 
     # 更新指定section的option
     def setOption(self, section, key, value):
@@ -62,10 +66,13 @@ class ConfigIni:
             # 更新数据
             self.config.set(section, key, value)
             # 写入文件
-            with open(CONFIG_FILE, "w+", encoding="utf-8") as f:
+            with open(log.CONFIG_FILE, "w+", encoding="utf-8") as f:
                 self.config.write(f)
         except Exception as e:
-            print(e)
+            LOGGER.error("Method = ConfigIni#setOption : ini 配置更新异常： section = " + section + " option: " + key + " value : " + value)
+            LOGGER.error("Method = ConfigIni#setOption : 异常信息： Exception = " + str(e))
+
+
 
 class MainWindow(QMainWindow, Main.Ui_MainWindow):
     # 保存用户配置信号
@@ -84,8 +91,9 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             # 设置为非守护线程
             thread.daemon = False
             thread.start()
-        except:
-            print("线程启动异常")
+        except Exception as e:
+            LOGGER.error("Method = MainWindow#__init__ : 线程启动异常")
+            LOGGER.error("Method = MainWindow#__init__ : 异常信息： Exception = " + str(e))
 
     # 信号与槽， 追加监听事件
     def singal_and_slot(self):
@@ -111,6 +119,9 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         win_obj.cycle = int(self.config.getConfig('default', 'cycle', default=1))
         # 延迟
         win_obj.delay = int(self.config.getConfig('default', 'delay', default=0))
+        # log 文件
+        win_obj.local_data = self.config.getConfig('default', 'local_data', default=log.DEFAULT_DATA_FILE)
+
         # 基本信息
         # 用户名
         win_obj.user_name = self.config.getConfig('user', 'name', default="test_user")
@@ -128,9 +139,6 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         # 考勤结束时间
         attendance.endTime = self.config.getConfig('attendance', 'end', default="18:00")
         win_obj.attendance = attendance
-
-        # log 文件
-        win_obj.local_data = self.config.getConfig('user', 'local_data', default=windows_obj.DEFAULT_DATA_FILE)
 
         # 模式  离线/在线
         win_obj.mode = self.config.getConfig('mode', 'mode', default=windows_obj.Mode.OFFLINE.name)
@@ -161,9 +169,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             external_tools[name] = self.config.getConfig("external_tools", name)
         win_obj.external_tools = external_tools
 
-        print(win_obj.__dict__)
-        print(win_obj.database.__dict__)
-        print(win_obj.attendance.__dict__)
+        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 主体信息： + " + str(win_obj.__dict__))
+        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 数据库信息： + " + str(win_obj.database.__dict__))
+        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 考勤信息： + " + str(win_obj.attendance.__dict__))
+
         return win_obj
 
     # 显示读取的数据
@@ -227,62 +236,59 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
     # 打开外部工具
     def open_exe_handler(self, exe):
-        print("打开外部工具: " + exe)
+        LOGGER.debug("Method = MainWindow#open_exe_handler : 打开外部工具： + " + exe)
         try:
             subprocess.run(exe)
         except Exception as e:
-            print("openExeHandler: " + e)
+            LOGGER.error("Method = MainWindow#open_exe_handler : 打开外部工具异常 Exception =  " + e)
 
     # 追加外部配置
     def add_tool_handler(self):
         file, _ = QFileDialog.getOpenFileName(self, "选择文件", "C:\\", "All Files (*.exe *.html *.htm)")
-        print("file : " + file)
+        LOGGER.debug("Method = MainWindow#add_tool_handler : 追加外部工具 工具 = " + file)
         try:
             self.config.setOption("external_tools", os.path.splitext(os.path.basename(file))[0], file)
         except Exception as e:
-            print(e)
+            LOGGER.error("Method = MainWindow#add_tool_handler : 追加外部工具异常 Exception = " + str(e))
+
         finally:
-            self.data = self.load_config()
+            # self.data = self.load_config()
+            pass
 
     # 选择log文件夹
-    def change_log_dir_hamdler(self, tool):
+    def change_log_dir_hamdler(self):
         dir = QFileDialog.getExistingDirectory(self, "选择文件夹", "./")
         self.local_data.setText(dir)
 
     # 变更模式时的事件
     def on_change_mode_handler(self, mode):
-        print("变更配置模式: " + mode)
-        # TODO
-        try:
-            if mode == windows_obj.Mode.ONLINE.name:
-                # 数据库种别
-                self.db_category.setDisabled(False)
-                # 数据库host
-                self.db_host.setDisabled(False)
-                # 数据库端口
-                self.db_port.setDisabled(False)
-                # 数据库名
-                self.db_name.setDisabled(False)
-                # 数据库用户名
-                self.db_username.setDisabled(False)
-                # 数据库密码
-                self.db_password.setDisabled(False)
+        if mode == windows_obj.Mode.ONLINE.name:
+            # 数据库种别
+            self.db_category.setDisabled(False)
+            # 数据库host
+            self.db_host.setDisabled(False)
+            # 数据库端口
+            self.db_port.setDisabled(False)
+            # 数据库名
+            self.db_name.setDisabled(False)
+            # 数据库用户名
+            self.db_username.setDisabled(False)
+            # 数据库密码
+            self.db_password.setDisabled(False)
 
-            elif mode == windows_obj.Mode.OFFLINE.name:
-                # 数据库种别
-                self.db_category.setDisabled(True)
-                # 数据库host
-                self.db_host.setDisabled(True)
-                # 数据库端口
-                self.db_port.setDisabled(True)
-                # 数据库名
-                self.db_name.setDisabled(True)
-                # 数据库用户名
-                self.db_username.setDisabled(True)
-                # 数据库密码
-                self.db_password.setDisabled(True)
-        except Exception as e:
-            print(e)
+        elif mode == windows_obj.Mode.OFFLINE.name:
+            # 数据库种别
+            self.db_category.setDisabled(True)
+            # 数据库host
+            self.db_host.setDisabled(True)
+            # 数据库端口
+            self.db_port.setDisabled(True)
+            # 数据库名
+            self.db_name.setDisabled(True)
+            # 数据库用户名
+            self.db_username.setDisabled(True)
+            # 数据库密码
+            self.db_password.setDisabled(True)
 
     # OK按钮事件
     def config_save_handler(self):
@@ -291,6 +297,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             self.config.setOption('default','cycle', str(self.cycle.value()))
             # 延迟
             self.config.setOption('default','delay', str(self.delay.value()))
+            # log 文件
+            self.config.setOption('default','local_data', self.local_data.text())
 
             # 基本信息
             # 用户名
@@ -301,8 +309,6 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             self.config.setOption('user','email', self.email.text())
             # 描述
             self.config.setOption('user','description', self.description.toPlainText())
-            # log 文件
-            self.config.setOption('user','local_data', self.local_data.text())
 
             # 考勤
             # 考勤开始时间
@@ -337,16 +343,15 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             self.config.setOption('database','password', self.db_password.text())
 
 
-            print("配置保存: " + str( self.data.__dict__) )
+            LOGGER.debug("Method = MainWindow#config_save_handler : 保存数据结束")
         except Exception as e:
-            print(e)
+            LOGGER.error("Method = MainWindow#config_save_handler : 保存数据异常 Exception = " + str(e))
+
         self.close()
-        # TODO
 
     # CANCEL 按钮事件
     def on_click_cancel_handler(self):
-        print("画面关闭")
+        LOGGER.debug("Method = MainWindow#on_click_cancel_handler : 画面关闭")
         self.close()
-        # TODO
 
 
