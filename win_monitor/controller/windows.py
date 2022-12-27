@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTime
 from configparser import SafeConfigParser
@@ -6,7 +6,7 @@ import functools
 import subprocess
 import os
 from controller import windows_obj
-from ui import Main
+from ui import Main, About
 from action import action
 from db import sql, log
 
@@ -100,6 +100,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     def singal_and_slot(self):
         # 菜单栏追加外部工具按钮
         self.add_tool.triggered.connect(self.add_tool_handler)
+        # About 按钮
+        self.about.triggered.connect(self.about_show_handler)
         # 日志文件选择按钮
         self.data_dir.clicked.connect(self.change_log_dir_hamdler)
         # 离线按钮
@@ -355,3 +357,9 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         LOGGER.debug("Method = MainWindow#on_click_cancel_handler : 程序正常退出")
         self.thread.stop()
         self.close()
+
+    def about_show_handler(self):
+        self.about = QDialog()
+        about_ui = About.Ui_About()
+        about_ui.setupUi(self.about)
+        self.about.show()
