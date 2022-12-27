@@ -5,6 +5,7 @@ import pymysql
 from enum import Enum
 from PyQt5.QtCore import pyqtSignal, QObject
 import threading
+import sys
 from db import sql, log
 
 LOGGER = log.LOGGER
@@ -92,6 +93,9 @@ class BackGroundTask(threading.Thread):
     def run(self):
         Monitor().locke_monitor(self.win_obj.cycle, self.win_obj.delay)
 
+    def stop(self):
+        # threading.async_raise(threading.Thread.ident, SystemExit)
+        raise Exception("线程关闭")
 
 # 判断windows 是否锁屏  用户登录状态下，没有LogonUI.exe进程
 # 多用户状态（switch user？ 服务器系统开启多用户远程？）下失效，多用户状态下会存在多个LogonUI.exe进程

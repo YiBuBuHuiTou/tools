@@ -10,9 +10,9 @@ from ui import Main
 from action import action
 from db import sql, log
 
-
 # CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 LOGGER = log.LOGGER
+
 
 # ini 配置文件解析
 class ConfigIni:
@@ -69,9 +69,9 @@ class ConfigIni:
             with open(log.CONFIG_FILE, "w+", encoding="utf-8") as f:
                 self.config.write(f)
         except Exception as e:
-            LOGGER.error("Method = ConfigIni#setOption : ini 配置更新异常： section = " + section + " option: " + key + " value : " + value)
+            LOGGER.error(
+                "Method = ConfigIni#setOption : ini 配置更新异常： section = " + section + " option: " + key + " value : " + value)
             LOGGER.error("Method = ConfigIni#setOption : 异常信息： Exception = " + str(e))
-
 
 
 class MainWindow(QMainWindow, Main.Ui_MainWindow):
@@ -86,11 +86,12 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.setDefaultData()
         self.singal_and_slot()
         sql.user_regist(self.data)
+        self.thread = None
         try:
-            thread = action.BackGroundTask("backgroundTask", "sleep_monitor", self.data)
-            # 设置为非守护线程
-            thread.daemon = False
-            thread.start()
+            self.thread = action.BackGroundTask("backgroundTask", "sleep_monitor", self.data)
+            # 设置为非守护线程 防止窗口关闭时 程序监控程序终止
+            self.thread.daemon = False
+            self.thread.start()
         except Exception as e:
             LOGGER.error("Method = MainWindow#__init__ : 线程启动异常")
             LOGGER.error("Method = MainWindow#__init__ : 异常信息： Exception = " + str(e))
@@ -102,13 +103,14 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         # 日志文件选择按钮
         self.data_dir.clicked.connect(self.change_log_dir_hamdler)
         # 离线按钮
-        self.offline.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.OFFLINE.name ))
+        self.offline.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.OFFLINE.name))
         # 在线按钮
-        self.online.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.ONLINE.name ))
+        self.online.clicked.connect(functools.partial(self.on_change_mode_handler, windows_obj.Mode.ONLINE.name))
         # 保存按钮
         self.save_btn.clicked.connect(self.config_save_handler)
-        # 取消按钮
-        self.cancel_btn.clicked.connect(self.on_click_cancel_handler)
+        # 退出按钮
+        self.exit_btn.clicked.connect(self.on_click_exit_handler)
+
 
 
     # 加载配置
@@ -231,7 +233,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             action.setObjectName(key)
             action.setText(key)
             # action.triggered.connect(lambda: self.openExeHandler(value))
-            action.triggered.connect(functools.partial(self.open_exe_handler,value))
+            action.triggered.connect(functools.partial(self.open_exe_handler, value))
             self.external_tools.addAction(action)
 
     # 打开外部工具
@@ -294,32 +296,32 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     def config_save_handler(self):
         try:
             # 监听周期
-            self.config.setOption('default','cycle', str(self.cycle.value()))
+            self.config.setOption('default', 'cycle', str(self.cycle.value()))
             # 延迟
-            self.config.setOption('default','delay', str(self.delay.value()))
+            self.config.setOption('default', 'delay', str(self.delay.value()))
             # log 文件
-            self.config.setOption('default','local_data', self.local_data.text())
+            self.config.setOption('default', 'local_data', self.local_data.text())
 
             # 基本信息
             # 用户名
-            self.config.setOption('user','name', self.user_name.text())
+            self.config.setOption('user', 'name', self.user_name.text())
             # 工号
-            self.config.setOption('user','job_number', self.job_number.text())
+            self.config.setOption('user', 'job_number', self.job_number.text())
             # 邮箱
-            self.config.setOption('user','email', self.email.text())
+            self.config.setOption('user', 'email', self.email.text())
             # 描述
-            self.config.setOption('user','description', self.description.toPlainText())
+            self.config.setOption('user', 'description', self.description.toPlainText())
 
             # 考勤
             # 考勤开始时间
-            self.config.setOption('attendance','start', self.start_time.time().toString("hh:mm"))
+            self.config.setOption('attendance', 'start', self.start_time.time().toString("hh:mm"))
             # 考勤结束时间
-            self.config.setOption('attendance','end', self.end_time.time().toString("hh:mm"))
+            self.config.setOption('attendance', 'end', self.end_time.time().toString("hh:mm"))
 
             # 模式  离线/在线
             if self.online.isChecked() is True:
                 self.config.setOption('mode', 'mode', windows_obj.Mode.ONLINE.name)
-            elif  self.offline.isChecked() is True:
+            elif self.offline.isChecked() is True:
                 self.config.setOption('mode', 'mode', windows_obj.Mode.OFFLINE.name)
 
             # 是否开启提示
@@ -330,18 +332,17 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
             # 数据库信息
             # 数据库种类
-            self.config.setOption('database','category', self.db_category.currentText())
+            self.config.setOption('database', 'category', self.db_category.currentText())
             # 数据库ip
-            self.config.setOption('database','host', self.db_host.text())
+            self.config.setOption('database', 'host', self.db_host.text())
             # 数据库端口
-            self.config.setOption('database','port', self.db_port.text())
+            self.config.setOption('database', 'port', self.db_port.text())
             # 数据库名字
-            self.config.setOption('database','database', self.db_name.text())
+            self.config.setOption('database', 'database', self.db_name.text())
             # 数据库用户名
-            self.config.setOption('database','username', self.db_username.text())
+            self.config.setOption('database', 'username', self.db_username.text())
             # 数据库密码
-            self.config.setOption('database','password', self.db_password.text())
-
+            self.config.setOption('database', 'password', self.db_password.text())
 
             LOGGER.debug("Method = MainWindow#config_save_handler : 保存数据结束")
         except Exception as e:
@@ -349,9 +350,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
         self.close()
 
-    # CANCEL 按钮事件
-    def on_click_cancel_handler(self):
-        LOGGER.debug("Method = MainWindow#on_click_cancel_handler : 画面关闭")
+    # 退出 按钮事件
+    def on_click_exit_handler(self):
+        LOGGER.debug("Method = MainWindow#on_click_cancel_handler : 程序正常退出")
+        self.thread.stop()
         self.close()
-
-

@@ -70,14 +70,14 @@ def getLogger():
         print(e)
         file_name = DEFAULT_DATA_FILE
     try:
-        level = config.get(section="default", option="level")
-        if level is None:
-            level = "debug"
+        loglevel = config.get(section="default", option="level")
+        if loglevel is None or Logger.level[loglevel] is None:
+            loglevel = "debug"
     except Exception as e:
         print(e)
-        level = "debug"
+        loglevel = "debug"
 
-    logger = Logger(file_name + '/Attendance.log', level, when='W0', backCount=10)
+    logger = Logger(file_name + '/Attendance.log', loglevel, when='W0', backCount=10)
 
     return logger.logger
 

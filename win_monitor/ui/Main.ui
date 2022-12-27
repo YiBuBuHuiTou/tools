@@ -483,7 +483,7 @@ border-right-width:0px;</string>
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>520</x>
@@ -501,9 +501,9 @@ border-right-width:0px;</string>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="cancel_btn">
+      <widget class="QPushButton" name="exit_btn">
        <property name="text">
-        <string>取消</string>
+        <string>退出</string>
        </property>
       </widget>
      </item>
