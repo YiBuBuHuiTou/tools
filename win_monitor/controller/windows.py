@@ -358,6 +358,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.thread.stop()
         self.close()
 
+    # About窗口打开
     def about_show_handler(self):
         self.about = QDialog()
         about_ui = About.Ui_About()

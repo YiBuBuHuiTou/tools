@@ -1,18 +1,51 @@
 import pymysql
 from controller import windows_obj
 from db import log
-
+import datetime
 
 LOGGER = log.LOGGER
 
+####################################user######################################
+# 通过工号查找用户
 FIND_USER_BY_JOB_NUM = "select * from user where job_num = %s"
-
+# 通过id查找用户
 FIND_USER_BY_ID = "select * from user where id = %s"
-
+# 通过姓名查找用户
 FIND_USER_BY_NAME = "select * from user where name = %s"
-
+# 通过姓名 工号查找用户id
+FIND_USER_ID_BY_NAME_AND_JOB_NUM = "select id from user where name = %s and job_num = %s"
+# 插入用户信息
 INSERT_USER = "insert into user(name, job_num, email, start, end,description) values(%s, %s, %s, %s, %s, %s)"
 
+####################################record######################################
+# 插入打卡数据
+INSERT_RECORD = "insert into record(user, date, start, end, overtime, exchange_time, reason, handled, description) values(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+# 更新下班时间
+UPDATE_START_TIME = "update record set start = %s where user = %s and date = %s"
+# 更新下班时间
+UPDATE_END_TIME = "update record set end = %s where user = %s and date = %s"
+# 更新加班时间
+UPDATE_OVER_EXCHANGE_TIME = "update record set overtime = %s, exchange_time = %s where user = %s and date = %s"
+# 更新加班理由
+UPDATE_REASON = "update record set reason = %s where user = %s and date = %s"
+# 更新加班处理结果
+UPDATE_HANDLED = "update record set handled = %s where user = %s and date = %s"
+# 更新描述
+UPDATE_DESCRIPTION = "update record set description = %s where user = %s and date = %s"
+# 用户更新加班数据
+USER_UPDATE_SQL = "update record set overtime = %s, exchange_time = %s, reason = %s, description = %s where user = %s and date = %s"
+# 管理员更新加班数据
+ADMIN_UPDATE_SQL = "update record set overtime = %s, exchange_time = %s, handled = %s, description = %s where user = %s and date = %s"
+# 根据用户和日期查找数据库数据行数
+SUM_RECORD_COUNT = "select count(1) from record where user = %s and date = %s"
+# 根据日期查找数据库数据
+FIND_RECORDS_BY_DATE_DELTA = "select * from record where user = %s and date >= %s and date <= %s"
+# 根据日期查找数据库数据
+FIND_RECORD_BY_USER_AND_DATE = "select * from record where user = %s and date = %s"
+# 查询上班时间
+FIND_START_BY_USER_AND_DATE = "select start from record  where user = %s and date = %s"
+# 查询下班时间
+FIND_END_BY_USER_AND_DATE = "select end from record where user = %s and date = %s"
 
 def db_connect(databse):
     # db = pymysql.connect(host='127.0.0.1',
@@ -42,22 +75,25 @@ def user_regist(win_obj):
         LOGGER.debug("Method = sql#user_regist : 离线模式，不使用远程数据库")
         return
 
-    userId = None
-    db = pymysql.connect(host=win_obj.database.host,
-                         port=int(win_obj.database.port),
-                         user=win_obj.database.username,
-                         password=win_obj.database.password,
-                         database=win_obj.database.database,
-                         charset='utf8')
-    cursor = db.cursor()
+    one = None
     try:
-        cursor.execute(FIND_USER_BY_JOB_NUM,win_obj.job_number)
+        db = pymysql.connect(host=win_obj.database.host,
+                             port=int(win_obj.database.port),
+                             user=win_obj.database.username,
+                             password=win_obj.database.password,
+                             database=win_obj.database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        cursor.execute(FIND_USER_BY_JOB_NUM, win_obj.job_number)
         one = cursor.fetchone()
-
         if one is None:
             LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 新用户")
-            cursor.execute(INSERT_USER,[win_obj.user_name, win_obj.job_number, win_obj.email, win_obj.attendance.startTime, win_obj.attendance.endTime, win_obj.description])
+            cursor.execute(INSERT_USER,
+                           [win_obj.user_name, win_obj.job_number, win_obj.email, win_obj.attendance.startTime,
+                            win_obj.attendance.endTime, win_obj.description])
             db.commit()
+            cursor.execute(FIND_USER_ID_BY_NAME_AND_JOB_NUM, [win_obj.user_name, win_obj.job_number])
+            one = cursor.fetchone()
         else:
             LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 老用户")
 
@@ -67,8 +103,91 @@ def user_regist(win_obj):
     finally:
         cursor.close()
         db.close()
+    # 返回user_id 主键
+    LOGGER.debug("Method = sql#user_regist : 在线模式，用户信息 = " + str(one))
+    win_obj.user_id = one[0]
+    return one[0]
 
 
-def addRecord(user_id, status):
-    pass
+# 追加屏幕登录记录
+def addUNLockRecord(database, user_id):
+    LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，追加屏幕登录记录:  user_id: " + str(user_id) + ", Time: " + str(datetime.datetime.now()))
+    one = None
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 查找今天的上班时间
+        cursor.execute(FIND_RECORD_BY_USER_AND_DATE, [user_id, datetime.date.today()])
+        one = cursor.fetchone()
+        # 今天没有上班记录
+        if one is None:
+            # 插入新的上班记录
+            cursor.execute(INSERT_RECORD, [user_id, datetime.date.today(), datetime.datetime.now().time(),  None, None, None, None, 0, None])
+            db.commit()
+        else:
+            # 如果有上班记录，并且记录时间比现在晚，更新上班时间
+            if one[3] > (datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)):
+                cursor.execute(UPDATE_START_TIME, [datetime.datetime.now().time(), user_id, datetime.date.today()])
+                db.commit()
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+            else:
+                # 如果有上班记录，并且记录时间比现在早，不更新上班时间
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间不更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#addUNLockRecord : 在线模式，上班时间插入异常 Exception = " + str(e))
+        LOGGER.error("Method = sql#addUNLockRecord : 在线模式，上班时间插入异常  当前时间 " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,
+                                                     day=datetime.date.today().day)))
+    finally:
+        cursor.close()
+        db.close()
+
+
+# 追加屏幕锁定记录
+def addLockRecord(database, user_id):
+    LOGGER.debug("Method = sql#addLockRecord : 在线模式，追加屏幕锁定记录: user_id: " + str(user_id) + ", Time: " + str(
+        datetime.datetime.now()))
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 查找今天的上班班记录
+        cursor.execute(FIND_RECORD_BY_USER_AND_DATE, [user_id, datetime.date.today()])
+        one = cursor.fetchone()
+        # 今天没有上班记录（昨天通宵了？）
+        if one is None:
+            cursor.execute(INSERT_RECORD,
+                           [user_id, datetime.date.today(), datetime.date.today(), datetime.datetime.now().time(), None, None, None, 0,
+                            None])
+            db.commit()
+        else:
+            # 如果没有下班记录，或者下班时间比当前时间早，更新下班时间
+            if one[4] is None or one[4] < (datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)):
+                cursor.execute(UPDATE_END_TIME, [datetime.datetime.now().time(), user_id, datetime.date.today()])
+                db.commit()
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+            else:
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间不更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#addLockRecord : 在线模式，下班记录更新异常 Exception = " + str(e))
+        LOGGER.error("Method = sql#addLockRecord : 在线模式，下班记录更新异常  当前时间 " + str(
+                datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                            month=datetime.date.today().month,
+                                                            day=datetime.date.today().day)))
+    finally:
+        cursor.close()
+        db.close()
+
 

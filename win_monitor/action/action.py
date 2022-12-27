@@ -17,51 +17,33 @@ class OsStatus(Enum):
     LOCKED = 1
 
 
-def connectdb():
-    # db = pymysql.connect(host='127.0.0.1',
-    #                      port=3306,
-    #                      user='root',
-    #                      password='venus',
-    #                      database='monitor',
-    #                      charset='utf8')
-    db = pymysql.connect(host='192.168.2.54',
-                         port=3306,
-                         user='root',
-                         password='password',
-                         database='monitor',
-                         charset='utf8')
-
-    cursor = db.cursor()
-    cursor.execute("select version()")
-    data = cursor.fetchone()
-    print("连接成功")
-    db.close()
-
-
 # Monitor信号与槽
 class Monitor(QObject):
     # 用户登录状态信号
-    win_status_signal = pyqtSignal(int)
+    win_status_signal = pyqtSignal(int, str, int)
 
-    def __init__(self):
+    def __init__(self, database):
         super(Monitor, self).__init__()
         self.win_status_signal.connect(self.win_change_handler)
+        self.database = database
 
     # 用户登录状况变化处理函数
-    def win_change_handler(self, status):
-
+    def win_change_handler(self, user_id, mode, status):
         if status == OsStatus.LOCKED.value:
             LOGGER.info("Method = Monitor#win_change_handler : 屏幕已锁定")
+            sql.addLockRecord(self.database, user_id)
+
         elif status == OsStatus.UNLOCK.value:
             LOGGER.info("Method = Monitor#win_change_handler : 屏幕已解锁")
+            sql.addUNLockRecord(self.database, user_id)
 
     # 监听windows 是否登录
     # 周期： cycle, 灵敏度：delay
-    def locke_monitor(self, cycle, delay):
+    def locke_monitor(self,user_id, mode, cycle, delay):
         delay_clone = delay
         status_old = OsStatus.LOCKED if isLocked() else OsStatus.UNLOCK
         # 初始信号
-        self.win_status_signal.emit(status_old.value)
+        self.win_status_signal.emit(user_id, mode, status_old.value)
 
         while True:
             lock_status = isLocked()
@@ -78,7 +60,7 @@ class Monitor(QObject):
                 delay = delay_clone
 
             if status_change is True:
-                self.win_status_signal.emit(status_old.value)
+                self.win_status_signal.emit(user_id, mode, status_old.value)
             # 检测周期
             time.sleep(cycle)
 
@@ -91,7 +73,7 @@ class BackGroundTask(threading.Thread):
         self.win_obj = win_obj
 
     def run(self):
-        Monitor().locke_monitor(self.win_obj.cycle, self.win_obj.delay)
+        Monitor(self.win_obj.database).locke_monitor(self.win_obj.user_id, self.win_obj.mode,  self.win_obj.cycle, self.win_obj.delay)
 
     def stop(self):
         # threading.async_raise(threading.Thread.ident, SystemExit)

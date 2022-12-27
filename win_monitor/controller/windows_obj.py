@@ -33,6 +33,7 @@ class Attendance:
 
 class WinObj:
     def __init__(self):
+        self.user_id = None
         self.user_name = None
         self.job_number = None
         self.email = None
