@@ -56,7 +56,6 @@ class ConfigIni:
             with open(log.CONFIG_FILE, "w+", encoding="utf-8") as f:
                 self.config.write(f)
         except Exception as e:
-            print("addSection : " + e)
             LOGGER.error("Method = ConfigIni#addSection : ini 获取配置异常： section = " + section)
             LOGGER.error("Method = ConfigIni#addSection : 异常信息： Exception = " + str(e))
 
