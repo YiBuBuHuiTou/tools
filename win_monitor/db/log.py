@@ -11,7 +11,7 @@ DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../db/data/'
 
 # 日志
 class Logger:
-    LOG_FORMAT = "[%(levelname)s] %(asctime)s [%(filename)s:%(lineno)d, %(funcName)s] %(message)s"
+    LOG_FORMAT = " %(asctime)s [%(levelname)s] [%(filename)s:%(lineno)d, %(funcName)s] %(message)s"
     instance = None
 
     level = {
@@ -29,7 +29,7 @@ class Logger:
     #
     #     return cls.instance
 
-    def __init__(self, filename, level="debug", when='D', backCount=10, fmt=LOG_FORMAT):
+    def __init__(self, filename, level="debug", when='W', backCount=10, fmt=LOG_FORMAT):
         self.logger = logging.getLogger(filename)
         # log 级别
         self.logger.setLevel(self.level.get(level))
@@ -55,7 +55,7 @@ class Logger:
         th.setFormatter(formatter)
 
         self.logger.addHandler(sh)
-        # self.logger.addHandler(th)
+        self.logger.addHandler(th)
 
 
 def getLogger():
@@ -69,8 +69,15 @@ def getLogger():
     except Exception as e:
         print(e)
         file_name = DEFAULT_DATA_FILE
+    try:
+        level = config.get(section="default", option="level")
+        if level is None:
+            level = "debug"
+    except Exception as e:
+        print(e)
+        level = "debug"
 
-    logger = Logger(file_name + '/log.log', level="debug", when='D', backCount=10)
+    logger = Logger(file_name + '/Attendance.log', level, when='W0', backCount=10)
 
     return logger.logger
 
