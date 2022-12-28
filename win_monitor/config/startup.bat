@@ -14,9 +14,13 @@ rem set dest=C:\Users\YiBuBuHuiTou\AppData\Roaming\Microsoft\Windows\Start Menu\
 cd %~dp0
 cd ..
 set now=%cd%
-echo %cd%\monitor.exe back > monitor.bat
-
-mklink  "%dest%\monitor" %now%\monitor.bat
-
+rem 生成新的批处理，用于自启动
+echo %~d0 > monitor.bat
+echo cd %cd%  >> monitor.bat
+echo start monitor.exe back  >> monitor.bat
+rem 批处理移动到开机启动目录
+move  "%now%\monitor.bat"  "%dest%"
+rem 手动执行程序
+start monitor.exe
 
 pause

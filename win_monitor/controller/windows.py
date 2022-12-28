@@ -5,6 +5,7 @@ from configparser import SafeConfigParser
 import functools
 import subprocess
 import os
+import sys
 from controller import windows_obj
 from ui import Main, About
 from action import action
@@ -115,8 +116,6 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.save_btn.clicked.connect(self.config_save_handler)
         # 退出按钮
         self.exit_btn.clicked.connect(self.on_click_exit_handler)
-
-
 
     # 加载配置
     def load_config(self):
@@ -306,56 +305,92 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         try:
             # 监听周期
             self.config.setOption('default', 'cycle', str(self.cycle.value()))
+            self.data.cycle = self.cycle.value()
             # 延迟
             self.config.setOption('default', 'delay', str(self.delay.value()))
+            self.data.delay = self.delay.value()
+
             # log 文件
             self.config.setOption('default', 'local_data', self.local_data.text())
+            self.data.local_data = self.local_data.text()
 
             # 基本信息
             # 用户名
             self.config.setOption('user', 'name', self.user_name.text())
+            self.data.user_name = self.user_name.text()
+
             # 工号
             self.config.setOption('user', 'job_number', self.job_number.text())
+            self.data.job_number = self.job_number.text()
+
             # 邮箱
             self.config.setOption('user', 'email', self.email.text())
+            self.data.email = self.email.text()
+
             # 描述
             self.config.setOption('user', 'description', self.description.toPlainText())
+            self.data.description = self.description.toPlainText()
 
             # 考勤
             # 考勤开始时间
             self.config.setOption('attendance', 'start', self.start_time.time().toString("hh:mm"))
+            self.data.attendance.startTime = self.start_time.time()
+
             # 考勤结束时间
             self.config.setOption('attendance', 'end', self.end_time.time().toString("hh:mm"))
+            self.data.attendance.endTime = self.end_time.time()
 
             # 模式  离线/在线
             if self.online.isChecked() is True:
                 self.config.setOption('mode', 'mode', windows_obj.Mode.ONLINE.name)
+                self.data.mode = windows_obj.Mode.ONLINE.name
+
             elif self.offline.isChecked() is True:
                 self.config.setOption('mode', 'mode', windows_obj.Mode.OFFLINE.name)
+                self.data.mode = windows_obj.Mode.OFFLINE.name
 
             # 是否开启提示
             if self.remind.isChecked() is True:
                 self.config.setOption('mode', 'remind', windows_obj.Remind.TRUE.name)
+                self.data.remind = windows_obj.Remind.TRUE.name
+
             elif self.unremind.isChecked() is True:
                 self.config.setOption('mode', 'remind', windows_obj.Remind.FALSE.name)
+                self.data.remind = windows_obj.Remind.FALSE.name
 
             # 数据库信息
             # 数据库种类
             self.config.setOption('database', 'category', self.db_category.currentText())
+            self.data.database.category = self.db_category.currentText()
+
             # 数据库ip
             self.config.setOption('database', 'host', self.db_host.text())
+            self.data.database.host = self.db_host.text()
+
             # 数据库端口
             self.config.setOption('database', 'port', self.db_port.text())
+            self.data.database.port = int(self.db_port.text())
+
             # 数据库名字
             self.config.setOption('database', 'database', self.db_name.text())
+            self.data.database.database = self.db_name.text()
+
             # 数据库用户名
             self.config.setOption('database', 'username', self.db_username.text())
+            self.data.database.username = self.db_username.text()
+
             # 数据库密码
             self.config.setOption('database', 'password', self.db_password.text())
+            self.data.database.password = self.db_password.text()
 
             LOGGER.debug("Method = MainWindow#config_save_handler : 保存数据结束")
         except Exception as e:
             LOGGER.error("Method = MainWindow#config_save_handler : 保存数据异常 Exception = " + str(e))
+        finally:
+            #  重启程序
+            p = sys.executable
+            os.execl(p, p, *sys.argv)
+            sys.exit()
 
         self.close()
 

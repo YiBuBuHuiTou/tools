@@ -1,10 +1,28 @@
 import sys
-
+import psutil
 from PyQt5.QtWidgets import QApplication
 from controller.windows import MainWindow
 from db import log
 
 LOGGER = log.LOGGER
+
+
+# 判断进程是否已存在
+def isRunning():
+    is_running = False
+    now_proc = None
+    for proc in psutil.process_iter():
+        if proc.name() == "monitor.exe":
+            is_running = True
+            now_proc = proc
+            break
+    return is_running,
+
+
+# 杀进程
+def destroyPid(proc):
+    proc.kill()
+
 
 if __name__ == "__main__":
 

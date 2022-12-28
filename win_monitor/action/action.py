@@ -3,8 +3,11 @@ import psutil
 from enum import Enum
 from PyQt5.QtCore import pyqtSignal, QObject
 import threading
+import datetime
 
 from db import sql, log
+from controller import windows_obj
+
 
 LOGGER = log.LOGGER
 
@@ -28,12 +31,14 @@ class Monitor(QObject):
     # 用户登录状况变化处理函数
     def win_change_handler(self, user_id, mode, status):
         if status == OsStatus.LOCKED.value:
-            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已锁定")
-            sql.addLockRecord(self.database, user_id)
+            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已锁定，当前时间：" + str(datetime.datetime.now()))
+            if mode == windows_obj.Mode.ONLINE.name:
+                sql.addLockRecord(self.database, user_id)
 
         elif status == OsStatus.UNLOCK.value:
-            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已解锁")
-            sql.addUNLockRecord(self.database, user_id)
+            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已解锁，当前时间：" + str(datetime.datetime.now()))
+            if mode == windows_obj.Mode.ONLINE.name:
+                sql.addUNLockRecord(self.database, user_id)
 
     # 监听windows 是否登录
     # 周期： cycle, 灵敏度：delay
