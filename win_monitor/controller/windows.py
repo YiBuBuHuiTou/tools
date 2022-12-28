@@ -8,7 +8,7 @@ import os
 import sys
 from controller import windows_obj
 from ui import Main, About
-from action import action
+from action import action,common
 from db import sql, log
 
 # CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
@@ -388,15 +388,17 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             LOGGER.error("Method = MainWindow#config_save_handler : 保存数据异常 Exception = " + str(e))
         finally:
             #  重启程序
+            common.remove_pid_file()
             p = sys.executable
+            LOGGER.debug("Method = MainWindow#config_save_handler : 程序重启 路径：" + str(p))
             os.execl(p, p, *sys.argv)
-            sys.exit()
 
         self.close()
 
     # 退出 按钮事件
     def on_click_exit_handler(self):
         LOGGER.debug("Method = MainWindow#on_click_cancel_handler : 程序正常退出")
+        common.remove_pid_file()
         self.thread.stop()
         self.close()
 
