@@ -18,19 +18,21 @@ if __name__ == "__main__":
         new_pid = common.get_pid()
         # 如果是第一次执行，则文件不存在
         if os.path.exists(common.DEFAULT_PID_FILE) is False:
-            common.write_pid(str(new_pid))
             LOGGER.debug("Method = monitor#__name__ : 首次执行 pid： " + str(new_pid))
         else:
             # 如果是第二次执行
             old_pid = common.read_pid()
-            LOGGER.debug("Method = monitor#__name__ : 重复执行执行 原来pid： " + str(old_pid))
+            # 删除pid文件
+            common.remove_pid_file()
             # 杀死进程
+            LOGGER.debug("Method = monitor#__name__ : 重复执行执行 杀死进程： " + str(old_pid))
             os.kill(int(old_pid), signal.SIGINT)
-            common.write_pid(str(new_pid))
-            LOGGER.debug("Method = monitor#__name__ : 杀死进程 写入新pid： " + str(new_pid))
-
+            
     except Exception as e:
         LOGGER.warning("Method = monitor#__name__ : 程序单例执行异常 Exception = " + str(e))
+    finally:
+        LOGGER.debug("Method = monitor#__name__ :  写入新pid： " + str(new_pid))
+        common.write_pid(str(new_pid))
 
     if len(sys.argv) <= 1:
         LOGGER.debug("程序正常启动 启动参数：" + str(sys.argv))
