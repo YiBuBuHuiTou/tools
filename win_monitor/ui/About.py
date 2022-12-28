@@ -44,4 +44,4 @@ class Ui_About(object):
         self.label_3.setText(_translate("About", "Copyright (c) 2022 YiBuBuHuiTou"))
         self.label_4.setText(_translate("About", "项目地址：<a href=\"https://github.com/YiBuBuHuiTou/tools\">https://github.com/YiBuBuHuiTou/tools</a>"))
 
-import resources_rc
+from ui import resources_rc

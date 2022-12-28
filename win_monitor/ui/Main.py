@@ -318,4 +318,4 @@ class Ui_MainWindow(object):
         self.alarm.setText(_translate("MainWindow", "闹钟"))
         self.about.setText(_translate("MainWindow", "关于"))
 
-import resources_rc
+from ui import resources_rc

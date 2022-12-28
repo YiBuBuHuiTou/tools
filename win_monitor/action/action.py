@@ -1,11 +1,9 @@
-import datetime
 import time
 import psutil
-import pymysql
 from enum import Enum
 from PyQt5.QtCore import pyqtSignal, QObject
 import threading
-import sys
+
 from db import sql, log
 
 LOGGER = log.LOGGER

@@ -1,5 +1,4 @@
 from enum import Enum
-import os
 from db import log
 
 # DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../db/data/data.txt'
