@@ -18,6 +18,10 @@ LOGGER = log.LOGGER
 class ConfigIni:
 
     def __init__(self):
+        # 判断配置文件是否存在，不存在则新创建
+        if os.path.exists(log.CONFIG_FILE) is False:
+            os.mknod(os.mknod)
+
         self.config = SafeConfigParser()
         self.config.read(log.CONFIG_FILE, encoding="utf-8")
 
@@ -123,7 +127,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         # 延迟
         win_obj.delay = int(self.config.getConfig('default', 'delay', default=0))
         # log 文件
-        win_obj.local_data = self.config.getConfig('default', 'local_data', default=log.DEFAULT_DATA_FILE)
+        win_obj.local_data = self.config.getConfig('default', 'local_data', default=log.DEFAULT_DATA_DIR)
 
         # 基本信息
         # 用户名
@@ -196,10 +200,12 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         if self.data.mode == windows_obj.Mode.ONLINE.name:
             self.online.setChecked(True)
             self.offline.setChecked(False)
-
         else:
             self.online.setChecked(False)
             self.offline.setChecked(True)
+        # 设置初期模式状态
+        self.on_change_mode_handler(self.data.mode)
+
         # 数据库种别
         self.db_category.setCurrentIndex(0)  # TODO  固定值
         # 本地数据
@@ -248,9 +254,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     # 追加外部配置
     def add_tool_handler(self):
         file, _ = QFileDialog.getOpenFileName(self, "选择文件", "C:\\", "All Files (*.exe *.html *.htm)")
-        LOGGER.debug("Method = MainWindow#add_tool_handler : 追加外部工具 工具 = " + file)
         try:
-            self.config.setOption("external_tools", os.path.splitext(os.path.basename(file))[0], file)
+            if file is not None and file != "":
+                LOGGER.debug("Method = MainWindow#add_tool_handler : 追加外部工具 工具 = " + file)
+                self.config.setOption("external_tools", os.path.splitext(os.path.basename(file))[0], file)
         except Exception as e:
             LOGGER.error("Method = MainWindow#add_tool_handler : 追加外部工具异常 Exception = " + str(e))
 
@@ -261,7 +268,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     # 选择log文件夹
     def change_log_dir_hamdler(self):
         dir = QFileDialog.getExistingDirectory(self, "选择文件夹", "./")
-        self.local_data.setText(dir)
+        if dir is not None and dir != "":
+            self.local_data.setText(dir)
 
     # 变更模式时的事件
     def on_change_mode_handler(self, mode):

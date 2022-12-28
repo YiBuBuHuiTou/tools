@@ -17,6 +17,9 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/image/favicon.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.office_config = QtWidgets.QFrame(self.centralwidget)
@@ -315,3 +318,4 @@ class Ui_MainWindow(object):
         self.alarm.setText(_translate("MainWindow", "闹钟"))
         self.about.setText(_translate("MainWindow", "关于"))
 
+import resources_rc

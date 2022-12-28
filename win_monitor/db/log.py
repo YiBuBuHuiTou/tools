@@ -4,7 +4,7 @@ from configparser import SafeConfigParser
 import os
 
 CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
-DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../db/data/'
+DEFAULT_DATA_DIR = os.path.dirname(os.path.realpath(__file__)) + '/../data/'
 
 
 
@@ -60,24 +60,35 @@ class Logger:
 
 def getLogger():
     config = SafeConfigParser()
-    config.read(CONFIG_FILE)
-    file_name = None
-    try:
-        file_name = config.get(section="default", option="local_data")
-        if file_name is None:
-            file_name = DEFAULT_DATA_FILE
-    except Exception as e:
-        print(e)
-        file_name = DEFAULT_DATA_FILE
-    try:
-        loglevel = config.get(section="default", option="level")
-        if loglevel is None or Logger.level[loglevel] is None:
-            loglevel = "debug"
-    except Exception as e:
-        print(e)
-        loglevel = "debug"
+    # 判断配置文件是否存在，不存在则新创建
+    if os.path.exists(CONFIG_FILE) is False:
+        os.mknod(os.mknod)
 
-    logger = Logger(file_name + '/Attendance.log', loglevel, when='W0', backCount=10)
+    config.read(CONFIG_FILE, encoding="utf-8")
+    log_dir = None
+    try:
+        # 读取日志文件目录
+        log_dir = config.get(section="default", option="local_data")
+        if log_dir is None:
+            log_dir = DEFAULT_DATA_DIR
+    except Exception as e:
+        print(e)
+        log_dir = DEFAULT_DATA_DIR
+    try:
+        # 读取日志级别
+        log_level = config.get(section="default", option="level")
+        if log_level is None or Logger.level[log_level] is None:
+            log_level = "debug"
+    except Exception as e:
+        print(e)
+        log_level = "debug"
+
+    # 判断日志文件夹是否存在，不存在则创建
+    if os.path.exists(log_dir) is False:
+        os.mkdir(log_dir)
+
+    # 日志对象
+    logger = Logger(log_dir + '/Attendance.log', log_level, when='W0', backCount=10)
 
     return logger.logger
 

@@ -39,7 +39,7 @@ class WinObj:
         self.email = None
         self.cycle = None
         self.delay = None
-        self.local_data = log.DEFAULT_DATA_FILE
+        self.local_data = log.DEFAULT_DATA_DIR
         self.mode = Mode.OFFLINE.name
         self.attendance = Attendance()
         self.remind = Remind.TRUE.name

@@ -17,6 +17,9 @@ class Ui_About(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(About.sizePolicy().hasHeightForWidth())
         About.setSizePolicy(sizePolicy)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/image/favicon.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        About.setWindowIcon(icon)
         self.label = QtWidgets.QLabel(About)
         self.label.setGeometry(QtCore.QRect(30, 20, 71, 16))
         self.label.setObjectName("label")
@@ -41,3 +44,4 @@ class Ui_About(object):
         self.label_3.setText(_translate("About", "Copyright (c) 2022 YiBuBuHuiTou"))
         self.label_4.setText(_translate("About", "项目地址：<a href=\"https://github.com/YiBuBuHuiTou/tools\">https://github.com/YiBuBuHuiTou/tools</a>"))
 
+import resources_rc

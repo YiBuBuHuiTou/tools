@@ -19,6 +19,11 @@
   <property name="windowTitle">
    <string>关于</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normalon>:/image/favicon.ico</normalon>
+   </iconset>
+  </property>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
@@ -72,6 +77,8 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

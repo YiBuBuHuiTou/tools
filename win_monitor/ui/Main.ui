@@ -19,6 +19,11 @@
   <property name="windowTitle">
    <string>window 监听</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normalon>:/image/favicon.ico</normalon>
+   </iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QFrame" name="office_config">
     <property name="geometry">
@@ -574,6 +579,8 @@ border-right-width:0px;</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
