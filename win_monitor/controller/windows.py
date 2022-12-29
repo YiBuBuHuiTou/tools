@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog, QComboBox
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QTime
 from configparser import SafeConfigParser
@@ -8,7 +8,7 @@ import os
 import sys
 from controller import windows_obj
 from ui import Main, About, TrayIcon
-from action import action,common
+from action import action, common
 from db import sql, log
 
 # CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
@@ -91,12 +91,12 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         # ini配置读写
         self.config = ConfigIni()
         self.data = self.load_config()
-        # 设置出气值
+        # 设置初期值
         self.setDefaultData()
         # 信号与槽的链接
         self.singal_and_slot()
         # 打开软件时判断用户登录
-        sql.user_regist(self.data)
+        self.user_info_init()
         # 监控程序线程
         self.thread = None
         try:
@@ -138,13 +138,17 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
         # 基本信息
         # 用户名
-        win_obj.user_name = self.config.getConfig('user', 'name', default="test_user")
+        user = windows_obj.User()
+        user.user_name = self.config.getConfig('user', 'name', default="test_user")
         # 工号
-        win_obj.job_number = self.config.getConfig('user', 'job_number', default="000000")
+        user.job_number = self.config.getConfig('user', 'job_number', default="000000")
         # 邮箱
-        win_obj.email = self.config.getConfig('user', 'email', default="test@test.com")
+        user.email = self.config.getConfig('user', 'email', default="test@test.com")
+        # 租户
+        user.tenant = self.config.getConfig('user', 'tenant', default="test")
         # 描述
-        win_obj.description = self.config.getConfig('user', 'description', default="This is test user!!!!")
+        user.description = self.config.getConfig('user', 'description', default="This is test user!!!!")
+        win_obj.user = user
 
         # 考勤
         attendance = windows_obj.Attendance()
@@ -152,7 +156,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         attendance.startTime = self.config.getConfig('attendance', 'start', default="9:00")
         # 考勤结束时间
         attendance.endTime = self.config.getConfig('attendance', 'end', default="18:00")
-        win_obj.attendance = attendance
+        win_obj.user.attendance = attendance
 
         # 模式  离线/在线
         win_obj.mode = self.config.getConfig('mode', 'mode', default=windows_obj.Mode.OFFLINE.name)
@@ -183,27 +187,57 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             external_tools[name] = self.config.getConfig("external_tools", name)
         win_obj.external_tools = external_tools
 
+        # 在线模式下，从数据库获取租户信息
+        if win_obj.mode == windows_obj.Mode.ONLINE.name:
+            # 从数据库查找所有租户
+            tenants = sql.find_tenants(win_obj.database)
+            self.tenant.addItems(tenants)
+
         LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 主体信息： + " + str(win_obj.__dict__))
+        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 用户信息： + " + str(win_obj.user.__dict__))
         LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 数据库信息： + " + str(win_obj.database.__dict__))
-        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 考勤信息： + " + str(win_obj.attendance.__dict__))
+        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 考勤信息： + " + str(win_obj.user.attendance.__dict__))
 
         return win_obj
 
+    # 用户数据初始化
+    def user_info_init(self):
+        # 离线模式下 无处理
+        if self.data.mode == windows_obj.Mode.OFFLINE.name:
+            return
+        # 数据库用户不存在时 插入用户
+        db_user = sql.find_user_by_name_and_num(self.data.database, self.data.user)
+        if db_user is None:
+            sql.insert_user(self.data.database, self.data.user)
+            # 更新用户id
+            self.data.user.id = sql.find_user_id_by_name_and_num(self.data.database, self.data.user)
+            LOGGER.debug("Method = MainWindow#load_config : 在线模式，判断用户为 新用户 id : " + str(self.data.user.id))
+
+        else:
+            LOGGER.debug("Method = MainWindow#load_config : 在线模式，判断用户为 老用户 ： " + str(db_user))
+            self.data.user.id = db_user[0]
+
     # 显示读取的数据
     def setDefaultData(self):
-        # 姓名
-        self.user_name.setText(self.data.user_name)
-        # 工号
-        self.job_number.setText(self.data.job_number)
-        # 邮箱
-        self.email.setText(self.data.email)
-        # 描述
-        self.description.setPlainText(self.data.description)
-        self.description.setFocus(True)
         # 周期
         self.cycle.setValue(self.data.cycle)
         # 延迟
         self.delay.setValue(self.data.delay)
+        # 本地数据
+        self.local_data.setText(self.data.local_data)
+
+        # 姓名
+        self.user_name.setText(self.data.user.user_name)
+        # 工号
+        self.job_number.setText(self.data.user.job_number)
+        # 邮箱
+        self.email.setText(self.data.user.email)
+        # 租户
+        self.tenant.setCurrentText(self.data.user.tenant)
+        # 描述
+        self.description.setPlainText(self.data.user.description)
+        self.description.setFocus(True)
+
         # 模式
         if self.data.mode == windows_obj.Mode.ONLINE.name:
             self.online.setChecked(True)
@@ -215,9 +249,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.on_change_mode_handler(self.data.mode)
 
         # 数据库种别
-        self.db_category.setCurrentIndex(0)  # TODO  固定值
-        # 本地数据
-        self.local_data.setText(self.data.local_data)
+        self.db_category.setCurrentText(self.data.database.category)
         # 数据库host
         self.db_host.setText(self.data.database.host)
         # 数据库端口
@@ -229,10 +261,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         # 数据库密码
         self.db_password.setText(self.data.database.password)
         # 上班时间
-        start = self.data.attendance.startTime.split(":")
+        start = self.data.user.attendance.startTime.split(":")
         self.start_time.setTime(QTime(int(start[0]), int(start[1])))
         # 下班时间
-        end = self.data.attendance.endTime.split(":")
+        end = self.data.user.attendance.endTime.split(":")
         self.end_time.setTime(QTime(int(end[0]), int(end[1])))
         # 是否提示
         if self.data.remind == windows_obj.Remind.TRUE.name:
@@ -330,28 +362,32 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             # 基本信息
             # 用户名
             self.config.setOption('user', 'name', self.user_name.text())
-            self.data.user_name = self.user_name.text()
+            self.data.user.user_name = self.user_name.text()
 
             # 工号
             self.config.setOption('user', 'job_number', self.job_number.text())
-            self.data.job_number = self.job_number.text()
+            self.data.user.job_number = self.job_number.text()
 
             # 邮箱
             self.config.setOption('user', 'email', self.email.text())
-            self.data.email = self.email.text()
+            self.data.user.email = self.email.text()
+
+            # 租户
+            self.config.setOption('user', 'tenant', self.tenant.currentText())
+            self.data.user.tenant = self.tenant.currentText()
 
             # 描述
             self.config.setOption('user', 'description', self.description.toPlainText())
-            self.data.description = self.description.toPlainText()
+            self.data.user.description = self.description.toPlainText()
 
             # 考勤
             # 考勤开始时间
             self.config.setOption('attendance', 'start', self.start_time.time().toString("hh:mm"))
-            self.data.attendance.startTime = self.start_time.time()
+            self.data.user.attendance.startTime = self.start_time.time().toString("hh:mm")
 
             # 考勤结束时间
             self.config.setOption('attendance', 'end', self.end_time.time().toString("hh:mm"))
-            self.data.attendance.endTime = self.end_time.time()
+            self.data.user.attendance.endTime = self.end_time.time().toString("hh:mm")
 
             # 模式  离线/在线
             if self.online.isChecked() is True:
@@ -395,7 +431,11 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             # 数据库密码
             self.config.setOption('database', 'password', self.db_password.text())
             self.data.database.password = self.db_password.text()
+            print("用户数据  ： " + str(self.data.user.__dict__))
+            print("用户数据  ： " + str(self.data.user.attendance.__dict__))
 
+            # 更新数据库信息
+            self.db_data_update()
             LOGGER.debug("Method = MainWindow#config_save_handler : 保存数据结束")
         except Exception as e:
             LOGGER.error("Method = MainWindow#config_save_handler : 保存数据异常 Exception = " + str(e))
@@ -411,11 +451,48 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
                 p = sys.executable
                 LOGGER.debug("Method = MainWindow#config_save_handler : 程序重启 路径：" + str(p))
                 # os.execl(p, p, *sys.argv,"-m back")
-                os.execl(p, p, *sys.argv,"back")
+                os.execl(p, p, *sys.argv, "back")
             except Exception as e:
                 print(e)
 
         # self.close()
+
+        # 用户数据初始化
+
+    # 更新数据库信息
+    def db_data_update(self):
+        # 离线模式下 无处理
+        if self.data.mode == windows_obj.Mode.OFFLINE.name:
+            return
+        # 数据库用户不存在时 插入用户
+        # db_user = sql.find_user_by_name_and_num(self.data.database, self.data.user)
+        # if db_user is None:
+        #     sql.insert_user(self.data.database, self.data.user)
+        #     # 取得新用户id
+        #     self.data.user.id = sql.find_user_id_by_name_and_num(self.data.database, self.data.user)
+        #     LOGGER.debug("Method = MainWindow#db_data_update : 在线模式，保存新用户 id : " + self.data.user.id)
+        #
+        # else:
+        #     sql.update_user(self.data.database, self.data.user)
+        #     LOGGER.debug("Method = MainWindow#db_data_update : 在线模式，判断用户为 老用户 ： " + str(db_user))
+        #     self.data.user.id = db_user[0]
+
+        # 数据库用户不存在时 插入用户
+        result = sql.update_user(self.data.database, self.data.user)
+        if result == 0:
+            sql.insert_user(self.data.database, self.data.user)
+            # 取得新用户id
+            self.data.user.id = sql.find_user_id_by_name_and_num(self.data.database, self.data.user)
+            LOGGER.debug("Method = MainWindow#db_data_update : 在线模式，保存新用户 id : " + self.data.user.id)
+
+        else:
+            tmp_user = sql.find_user_by_name_and_num(self.data.database, self.data.user)
+            LOGGER.debug("Method = MainWindow#db_data_update : 在线模式，判断用户为 老用户 ： " + str(tmp_user))
+            self.data.user.id = tmp_user[0]
+
+        # 更新租户信息
+        if sql.find_tenant_by_name(self.data.database, self.data.user.tenant) is None:
+            sql.insert_tenant(self.data.database, self.data.user)
 
     # 退出 按钮事件
     def on_click_exit_handler(self):

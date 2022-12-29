@@ -76,7 +76,7 @@ class BackGroundTask(threading.Thread):
         self.win_obj = win_obj
 
     def run(self):
-        Monitor(self.win_obj.database).locke_monitor(self.win_obj.user_id, self.win_obj.mode,  self.win_obj.cycle, self.win_obj.delay)
+        Monitor(self.win_obj.database).locke_monitor(self.win_obj.user.id, self.win_obj.mode,  self.win_obj.cycle, self.win_obj.delay)
 
     def stop(self):
         # threading.async_raise(threading.Thread.ident, SystemExit)

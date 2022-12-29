@@ -12,10 +12,14 @@ FIND_USER_BY_JOB_NUM = "select * from user where job_num = %s"
 FIND_USER_BY_ID = "select * from user where id = %s"
 # 通过姓名查找用户
 FIND_USER_BY_NAME = "select * from user where name = %s"
+# 通过姓名工号查找用户
+FIND_USER_BY_NAME_AND_JOB_NUM = "select * from user where name = %s and job_num = %s"
 # 通过姓名 工号查找用户id
 FIND_USER_ID_BY_NAME_AND_JOB_NUM = "select id from user where name = %s and job_num = %s"
 # 插入用户信息
-INSERT_USER = "insert into user(name, job_num, email, start, end,description) values(%s, %s, %s, %s, %s, %s)"
+INSERT_USER = "insert into user(name, job_num, email, tenant, start, end,description) values(%s, %s, %s, %s, %s, %s, %s)"
+# 更新用户信息
+UPDATE_USER = "update user set email = %s, tenant = %s, start = %s, end = %s, description = %s where name = %s and job_num = %s"
 
 ####################################record######################################
 # 插入打卡数据
@@ -47,34 +51,135 @@ FIND_START_BY_USER_AND_DATE = "select start from record  where user = %s and dat
 # 查询下班时间
 FIND_END_BY_USER_AND_DATE = "select end from record where user = %s and date = %s"
 
-def db_connect(databse):
-    # db = pymysql.connect(host='127.0.0.1',
-    #                      port=3306,
-    #                      user='root',
-    #                      password='venus',
-    #                      database='monitor',
-    #                      charset='utf8')
-    # db = pymysql.connect(host='192.168.2.54',
-    #                      port=3306,
-    #                      user='root',
-    #                      password='password',
-    #                      database='monitor',
-    #                      charset='utf8')
-    db = pymysql.connect(host=databse.host,
-                         port=databse.port,
-                         user=databse.username,
-                         password=databse.password,
-                         database=databse.database,
-                         charset='utf8')
-
-    return db
+#####################Tenant#########################################
+# 插入租户
+INSERT_TENANT = "insert into tenant(name, owner, description) values(%s, %s, %s)"
+# 查找所有租户
+FIND_TENANTS = "select name from tenant"
+# 查找租户
+FIND_TENANT_BY_NAME = "select * from tenant where name = %s"
 
 
+# 根据名字和工号查找用户
+def find_user_by_name_and_num(database, user):
+    result = None
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 查找所有租户
+        cursor.execute(FIND_USER_BY_NAME_AND_JOB_NUM, [user.user_name, user.job_number])
+        result = cursor.fetchone()
+        if result is None:
+            LOGGER.debug(
+                "Method = sql#find_user_by_name_and_num : 在线模式，查找用户不存在 : " + user.user_name + ": " + user.job_number)
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#find_user_by_name_and_num : 在线模式，查找用户异常 Exception = " + str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+    return result
+
+
+# 插入用户
+def insert_user(database, user):
+    result = None
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 插入用户
+        result = cursor.execute(INSERT_USER,
+                                [user.user_name, user.job_number, user.email, user.tenant, user.attendance.startTime,
+                                 user.attendance.endTime, user.description])
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#insert_user : 在线模式，插入用户异常 Exception = " + str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+    return result
+
+
+# 更新新用户 数据
+def update_user(database, user):
+    result = None
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 插入用户
+        result = cursor.execute(UPDATE_USER,
+                                [user.email, user.tenant, user.attendance.startTime, user.attendance.endTime,
+                                 user.description,
+                                 user.user_name, user.job_number])
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#insert_user : 在线模式，更新用户数据异常 Exception = " + str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+    return result
+
+
+# 查找用户id
+def find_user_id_by_name_and_num(database, user):
+    user_id = None
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 查找所有租户
+        cursor.execute(FIND_USER_ID_BY_NAME_AND_JOB_NUM, [user.user_name, user.job_number])
+        result = cursor.fetchone()
+
+        if result is None:
+            LOGGER.debug(
+                "Method = sql#find_user_id_by_name_and_num : 在线模式，查找用户不存在 : " + user.user_name + ": " + user.job_number)
+        else:
+            user_id = result[0]
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#find_user_id_by_name_and_num : 在线模式，查找用户异常 Exception = " + str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+    return user_id
+
+
+# 注册新用户 （已废弃）
 def user_regist(win_obj):
     if win_obj.mode == windows_obj.Mode.OFFLINE.name:
         LOGGER.debug("Method = sql#user_regist : 离线模式，不使用远程数据库")
         return
 
+    user = win_obj.user
+    attendance = win_obj.attendance
     one = None
     try:
         db = pymysql.connect(host=win_obj.database.host,
@@ -84,15 +189,15 @@ def user_regist(win_obj):
                              database=win_obj.database.database,
                              charset='utf8')
         cursor = db.cursor()
-        cursor.execute(FIND_USER_BY_JOB_NUM, win_obj.job_number)
+        cursor.execute(FIND_USER_BY_JOB_NUM, user.job_number)
         one = cursor.fetchone()
         if one is None:
             LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 新用户")
             cursor.execute(INSERT_USER,
-                           [win_obj.user_name, win_obj.job_number, win_obj.email, win_obj.attendance.startTime,
-                            win_obj.attendance.endTime, win_obj.description])
+                           [user.user_name, user.job_number, user.email, user.tenant, attendance.startTime,
+                            attendance.endTime, user.description])
             db.commit()
-            cursor.execute(FIND_USER_ID_BY_NAME_AND_JOB_NUM, [win_obj.user_name, win_obj.job_number])
+            cursor.execute(FIND_USER_ID_BY_NAME_AND_JOB_NUM, [user.user_name, user.job_number])
             one = cursor.fetchone()
         else:
             LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 老用户")
@@ -105,13 +210,14 @@ def user_regist(win_obj):
         db.close()
     # 返回user_id 主键
     LOGGER.debug("Method = sql#user_regist : 在线模式，用户信息 = " + str(one))
-    win_obj.user_id = one[0]
+    user.id = one[0]
     return one[0]
 
 
 # 追加屏幕登录记录
 def addUNLockRecord(database, user_id):
-    LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，追加屏幕登录记录:  user_id: " + str(user_id) + ", Time: " + str(datetime.datetime.now()))
+    LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，追加屏幕登录记录:  user_id: " + str(user_id) + ", Time: " + str(
+        datetime.datetime.now()))
     one = None
     try:
         db = pymysql.connect(host=database.host,
@@ -127,23 +233,35 @@ def addUNLockRecord(database, user_id):
         # 今天没有上班记录
         if one is None:
             # 插入新的上班记录
-            cursor.execute(INSERT_RECORD, [user_id, datetime.date.today(), datetime.datetime.now().time(),  None, None, None, None, 0, None])
+            cursor.execute(INSERT_RECORD,
+                           [user_id, datetime.date.today(), datetime.datetime.now().time(), None, None, None, None, 0,
+                            None])
             db.commit()
         else:
             # 如果有上班记录，并且记录时间比现在晚，更新上班时间
-            if one[3] > (datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)):
+            if one[3] > (datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                                     month=datetime.date.today().month,
+                                                                     day=datetime.date.today().day)):
                 cursor.execute(UPDATE_START_TIME, [datetime.datetime.now().time(), user_id, datetime.date.today()])
                 db.commit()
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(
+                    datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                                month=datetime.date.today().month,
+                                                                day=datetime.date.today().day)))
             else:
                 # 如果有上班记录，并且记录时间比现在早，不更新上班时间
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间不更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间不更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(
+                    datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                                month=datetime.date.today().month,
+                                                                day=datetime.date.today().day)))
 
     except Exception as e:
         db.rollback()
         LOGGER.error("Method = sql#addUNLockRecord : 在线模式，上班时间插入异常 Exception = " + str(e))
-        LOGGER.error("Method = sql#addUNLockRecord : 在线模式，上班时间插入异常  当前时间 " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,
-                                                     day=datetime.date.today().day)))
+        LOGGER.error("Method = sql#addUNLockRecord : 在线模式，上班时间插入异常  当前时间 " + str(
+            datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                        month=datetime.date.today().month,
+                                                        day=datetime.date.today().day)))
     finally:
         cursor.close()
         db.close()
@@ -167,27 +285,115 @@ def addLockRecord(database, user_id):
         # 今天没有上班记录（昨天通宵了？）
         if one is None:
             cursor.execute(INSERT_RECORD,
-                           [user_id, datetime.date.today(), datetime.date.today(), datetime.datetime.now().time(), None, None, None, 0,
+                           [user_id, datetime.date.today(), datetime.date.today(), datetime.datetime.now().time(), None,
+                            None, None, 0,
                             None])
             db.commit()
         else:
             # 如果没有下班记录，或者下班时间比当前时间早，更新下班时间
-            if one[4] is None or one[4] < (datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)):
+            if one[4] is None or one[4] < (datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                                                       month=datetime.date.today().month,
+                                                                                       day=datetime.date.today().day)):
                 cursor.execute(UPDATE_END_TIME, [datetime.datetime.now().time(), user_id, datetime.date.today()])
                 db.commit()
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(
+                    datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                                month=datetime.date.today().month,
+                                                                day=datetime.date.today().day)))
             else:
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间不更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year, month=datetime.date.today().month,day=datetime.date.today().day)))
+                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间不更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(
+                    datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                                month=datetime.date.today().month,
+                                                                day=datetime.date.today().day)))
 
     except Exception as e:
         db.rollback()
         LOGGER.error("Method = sql#addLockRecord : 在线模式，下班记录更新异常 Exception = " + str(e))
         LOGGER.error("Method = sql#addLockRecord : 在线模式，下班记录更新异常  当前时间 " + str(
-                datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
-                                                            month=datetime.date.today().month,
-                                                            day=datetime.date.today().day)))
+            datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
+                                                        month=datetime.date.today().month,
+                                                        day=datetime.date.today().day)))
     finally:
         cursor.close()
         db.close()
 
 
+# 插入tenant
+def insert_tenant(database, user):
+    tenants = []
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 查找所有租户
+        cursor.execute(INSERT_TENANT, [user.tenant, user.id, None])
+        db.commit()
+        LOGGER.error("Method = sql#find_tenants : 在线模式，插入新租户 租户 ： " + user.tenant)
+
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#find_tenants : 在线模式，插入新租户异常 Exception = " + str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+    return tenants
+
+
+# 查找所有tenant
+def find_tenants(database):
+    tenants = []
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 查找所有租户
+        cursor.execute(FIND_TENANTS)
+        result = cursor.fetchall()
+
+        for one in result:
+            tenants.append(one[0])
+        LOGGER.debug("Method = sql#find_tenants : 在线模式，查找所有租户 : " + str(tenants))
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#find_tenants : 在线模式，查找所有租户异常 Exception = " + str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+    return tenants
+
+
+# 根据租户查找数据
+def find_tenant_by_name(database, name):
+    tenant = None
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        cursor = db.cursor()
+        # 查找所有租户
+        cursor.execute(FIND_TENANT_BY_NAME, name)
+        tenant = cursor.fetchone()
+
+        if tenant is None:
+            LOGGER.debug("Method = sql#find_tenant_by_name : 在线模式，查找租户不存在 : " + name)
+    except Exception as e:
+        db.rollback()
+        LOGGER.error("Method = sql#tenant_exist_check : 在线模式，查找租户异常 Exception = " + str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+    return tenant

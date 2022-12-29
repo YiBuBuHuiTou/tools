@@ -1,6 +1,7 @@
 from enum import Enum
 from db import log
 
+
 # DEFAULT_DATA_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../db/data/data.txt'
 
 
@@ -30,18 +31,33 @@ class Attendance:
         self.endTime = None
 
 
-class WinObj:
+class Tenant:
     def __init__(self):
-        self.user_id = None
+        self.id = None
+        self.name = None
+        self.owner = None
+        self.description = None
+
+
+class User:
+    def __init__(self):
+        self.id = None
         self.user_name = None
         self.job_number = None
         self.email = None
+        self.description = None
+        self.tenant = None
+        self.attendance = Attendance()
+
+
+class WinObj:
+    def __init__(self):
         self.cycle = None
         self.delay = None
+        self.tenants = None
         self.local_data = log.DEFAULT_DATA_DIR
+        self.user = User()
         self.mode = Mode.OFFLINE.name
-        self.attendance = Attendance()
         self.remind = Remind.TRUE.name
         self.database = DataBase()
         self.external_tools = {}
-
