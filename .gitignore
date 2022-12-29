@@ -14,3 +14,4 @@ win_monitor/ui/__pycache__/Main.cpython-38.pyc
 *.log
 win_monitor/build/
 win_monitor/dist/
+win_monitor/lock/

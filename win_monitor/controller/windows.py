@@ -401,10 +401,15 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             LOGGER.error("Method = MainWindow#config_save_handler : 保存数据异常 Exception = " + str(e))
         finally:
             #  重启程序
+            # 清楚托盘图标
+            self.tray_icon.setVisible(False)
+            self.tray_icon = None
+            # 删除pid文件
             common.remove_pid_file()
+            # 后台重启程序
             p = sys.executable
             LOGGER.debug("Method = MainWindow#config_save_handler : 程序重启 路径：" + str(p))
-            os.execl(p, p, *sys.argv)
+            os.execl(p, p, *sys.argv, "back")
 
         self.close()
 

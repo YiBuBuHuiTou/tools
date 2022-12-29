@@ -41,18 +41,19 @@ if __name__ == "__main__":
         mainWin.show()
         sys.exit(app.exec_())
     # 后台运行
-    elif len(sys.argv) == 2:
+    else:
         if sys.argv[1] == "back":
             LOGGER.debug("程序后台启动 启动参数：" + str(sys.argv))
             app = QApplication(sys.argv)
             mainWin = MainWindow()
             # mainWin.show()
+            mainWin.setVisible(False)
             sys.exit(app.exec_())
         else:
-            LOGGER.debug("程序重启")
-            app = QApplication(sys.argv)
-            mainWin = MainWindow()
-            mainWin.show()
-            sys.exit(app.exec_())
-    else:
-        LOGGER.error("程序启动参数不正确，启动失败 启动参数：" + str(sys.argv))
+            LOGGER.error("程序启动参数不正确，启动失败 启动参数：" + str(sys.argv))
+            # LOGGER.debug("程序重启")
+            # app = QApplication(sys.argv)
+            # mainWin = MainWindow()
+            # # mainWin.show()
+            # mainWin.setVisible(False)
+            # sys.exit(app.exec_())
