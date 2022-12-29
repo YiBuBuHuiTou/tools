@@ -12,3 +12,5 @@ win_monitor/controller/__pycache__/windows_obj.cpython-38.pyc
 win_monitor/ui/__pycache__/Main.cpython-38.pyc
 *.pyc
 *.log
+win_monitor/build/
+win_monitor/dist/

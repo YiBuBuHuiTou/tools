@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QTime
 from configparser import SafeConfigParser
 import functools
@@ -7,7 +7,7 @@ import subprocess
 import os
 import sys
 from controller import windows_obj
-from ui import Main, About
+from ui import Main, About, TrayIcon
 from action import action,common
 from db import sql, log
 
@@ -85,11 +85,19 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        # 设置托盘图标
+        self.tray_icon = TrayIcon.TrayIcon(self)
+        self.tray_icon.show()
+        # ini配置读写
         self.config = ConfigIni()
         self.data = self.load_config()
+        # 设置出气值
         self.setDefaultData()
+        # 信号与槽的链接
         self.singal_and_slot()
+        # 打开软件时判断用户登录
         sql.user_regist(self.data)
+        # 监控程序线程
         self.thread = None
         try:
             self.thread = action.BackGroundTask("backgroundTask", "sleep_monitor", self.data)
@@ -191,6 +199,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         self.email.setText(self.data.email)
         # 描述
         self.description.setPlainText(self.data.description)
+        self.description.setFocus(True)
         # 周期
         self.cycle.setValue(self.data.cycle)
         # 延迟
@@ -398,8 +407,13 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     # 退出 按钮事件
     def on_click_exit_handler(self):
         LOGGER.debug("Method = MainWindow#on_click_cancel_handler : 程序正常退出")
+        # 删除pid 文件
         common.remove_pid_file()
+        # 清空托盘图标
+        self.tray_icon = None
+        # 停止线程
         self.thread.stop()
+        # 关闭窗口（由于使用引发异常停止线程，所以这里是否起作用未知）
         self.close()
 
     # About窗口打开
@@ -408,3 +422,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         about_ui = About.Ui_About()
         about_ui.setupUi(self.about)
         self.about.show()
+
+    # 重写右上角关闭按钮事件
+    def closeEvent(self, event):
+        self.setVisible(False)
+        event.ignore()

@@ -27,7 +27,7 @@ if __name__ == "__main__":
             # 杀死进程
             LOGGER.debug("Method = monitor#__name__ : 重复执行执行 杀死进程： " + str(old_pid))
             os.kill(int(old_pid), signal.SIGINT)
-            
+
     except Exception as e:
         LOGGER.warning("Method = monitor#__name__ : 程序单例执行异常 Exception = " + str(e))
     finally:
