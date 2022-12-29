@@ -270,8 +270,12 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             LOGGER.error("Method = MainWindow#add_tool_handler : 追加外部工具异常 Exception = " + str(e))
 
         finally:
-            # self.data = self.load_config()
-            pass
+            # 更新菜单栏
+            action = QtWidgets.QAction(self)
+            action.setObjectName(os.path.splitext(os.path.basename(file))[0])
+            action.setText(os.path.splitext(os.path.basename(file))[0])
+            action.triggered.connect(functools.partial(self.open_exe_handler, file))
+            self.external_tools.addAction(action)
 
     # 选择log文件夹
     def change_log_dir_hamdler(self):
