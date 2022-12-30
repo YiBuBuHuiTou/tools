@@ -2,6 +2,7 @@ import logging
 from logging import handlers
 from configparser import SafeConfigParser
 import os
+from action import common
 
 CONFIG_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../config/config.ini'
 DEFAULT_DATA_DIR = os.path.dirname(os.path.realpath(__file__)) + '/../data/'
@@ -62,7 +63,8 @@ def getLogger():
     config = SafeConfigParser()
     # 判断配置文件是否存在，不存在则新创建
     if os.path.exists(CONFIG_FILE) is False:
-        os.mknod(os.mknod)
+        # os.mknod(CONFIG_FILE)
+        common.create_new_file(CONFIG_FILE)
 
     config.read(CONFIG_FILE, encoding="utf-8")
     log_dir = None

@@ -21,7 +21,8 @@ class ConfigIni:
     def __init__(self):
         # 判断配置文件是否存在，不存在则新创建
         if os.path.exists(log.CONFIG_FILE) is False:
-            os.mknod(os.mknod)
+            # os.mknod(log.CONFIG_FILE)
+            common.create_new_file(log.CONFIG_FILE)
 
         self.config = SafeConfigParser()
         self.config.read(log.CONFIG_FILE, encoding="utf-8")

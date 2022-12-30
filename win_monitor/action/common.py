@@ -1,8 +1,5 @@
 import psutil
 import os
-from db import log
-
-LOGGER = log.LOGGER
 
 DEFAULT_PID_FILE = os.path.dirname(os.path.realpath(__file__)) + '/../lock/.pid'
 DEFAULT_PID_DIR = os.path.dirname(os.path.realpath(__file__)) + '/../lock/'
@@ -41,3 +38,9 @@ def read_pid():
 # 删除pid文件
 def remove_pid_file():
     os.remove(DEFAULT_PID_FILE)
+
+
+# 创建空文件
+def create_new_file(file):
+    f = open(file, "w+", encoding="utf-8")
+    f.close()
