@@ -66,8 +66,17 @@ class ConfigIni:
             LOGGER.error("异常信息： Exception = " + str(e))
 
     # 更新指定section的option
-    def setOption(self, section, key, value):
+    def setOption(self, section="default", key="test", value="test"):
         try:
+            section_exist = False
+            sections = self.config.sections()
+            for s in sections:
+                if section == s:
+                    section_exist = True
+                    break
+            if section_exist is False:
+                self.addSection(section)
+
             # 更新数据
             self.config.set(section, key, value)
             # 写入文件
