@@ -31,12 +31,12 @@ class Monitor(QObject):
     # 用户登录状况变化处理函数
     def win_change_handler(self, user_id, mode, status):
         if status == OsStatus.LOCKED.value:
-            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已锁定，当前时间：" + str(datetime.datetime.now()))
+            LOGGER.info("屏幕已锁定，当前时间：" + str(datetime.datetime.now()))
             if mode == windows_obj.Mode.ONLINE.name:
                 sql.addLockRecord(self.database, user_id)
 
         elif status == OsStatus.UNLOCK.value:
-            LOGGER.info("Method = Monitor#win_change_handler : 屏幕已解锁，当前时间：" + str(datetime.datetime.now()))
+            LOGGER.info("屏幕已解锁，当前时间：" + str(datetime.datetime.now()))
             if mode == windows_obj.Mode.ONLINE.name:
                 sql.addUNLockRecord(self.database, user_id)
 

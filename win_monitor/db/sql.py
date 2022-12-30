@@ -76,10 +76,10 @@ def find_user_by_name_and_num(database, user):
         result = cursor.fetchone()
         if result is None:
             LOGGER.debug(
-                "Method = sql#find_user_by_name_and_num : 在线模式，查找用户不存在 : " + user.user_name + ": " + user.job_number)
+                "查找用户不存在 : " + user.user_name + ": " + user.job_number)
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#find_user_by_name_and_num : 在线模式，查找用户异常 Exception = " + str(e))
+        LOGGER.error("查找用户异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()
@@ -106,7 +106,7 @@ def insert_user(database, user):
 
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#insert_user : 在线模式，插入用户异常 Exception = " + str(e))
+        LOGGER.error("插入用户异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()
@@ -134,7 +134,7 @@ def update_user(database, user):
 
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#insert_user : 在线模式，更新用户数据异常 Exception = " + str(e))
+        LOGGER.error("更新用户数据异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()
@@ -159,12 +159,12 @@ def find_user_id_by_name_and_num(database, user):
 
         if result is None:
             LOGGER.debug(
-                "Method = sql#find_user_id_by_name_and_num : 在线模式，查找用户不存在 : " + user.user_name + ": " + user.job_number)
+                "查找用户不存在 : " + user.user_name + ": " + user.job_number)
         else:
             user_id = result[0]
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#find_user_id_by_name_and_num : 在线模式，查找用户异常 Exception = " + str(e))
+        LOGGER.error("查找用户异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()
@@ -175,7 +175,7 @@ def find_user_id_by_name_and_num(database, user):
 # 注册新用户 （已废弃）
 def user_regist(win_obj):
     if win_obj.mode == windows_obj.Mode.OFFLINE.name:
-        LOGGER.debug("Method = sql#user_regist : 离线模式，不使用远程数据库")
+        LOGGER.debug("离线模式，不使用远程数据库")
         return
 
     user = win_obj.user
@@ -192,7 +192,7 @@ def user_regist(win_obj):
         cursor.execute(FIND_USER_BY_JOB_NUM, user.job_number)
         one = cursor.fetchone()
         if one is None:
-            LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 新用户")
+            LOGGER.debug("判断用户为 新用户")
             cursor.execute(INSERT_USER,
                            [user.user_name, user.job_number, user.email, user.tenant, attendance.startTime,
                             attendance.endTime, user.description])
@@ -200,23 +200,23 @@ def user_regist(win_obj):
             cursor.execute(FIND_USER_ID_BY_NAME_AND_JOB_NUM, [user.user_name, user.job_number])
             one = cursor.fetchone()
         else:
-            LOGGER.debug("Method = sql#user_regist : 在线模式，判断用户为 老用户")
+            LOGGER.debug("判断用户为 老用户")
 
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#user_regist : 在线模式，新用户插入异常 Exception = " + str(e))
+        LOGGER.error("新用户插入异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()
     # 返回user_id 主键
-    LOGGER.debug("Method = sql#user_regist : 在线模式，用户信息 = " + str(one))
+    LOGGER.debug("用户信息 = " + str(one))
     user.id = one[0]
     return one[0]
 
 
 # 追加屏幕登录记录
 def addUNLockRecord(database, user_id):
-    LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，追加屏幕登录记录:  user_id: " + str(user_id) + ", Time: " + str(
+    LOGGER.debug("追加屏幕登录记录:  user_id: " + str(user_id) + ", Time: " + str(
         datetime.datetime.now()))
     one = None
     try:
@@ -244,21 +244,21 @@ def addUNLockRecord(database, user_id):
                                                                      day=datetime.date.today().day)):
                 cursor.execute(UPDATE_START_TIME, [datetime.datetime.now().time(), user_id, datetime.date.today()])
                 db.commit()
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(
+                LOGGER.debug("上班时间更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(
                     datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                                 month=datetime.date.today().month,
                                                                 day=datetime.date.today().day)))
             else:
                 # 如果有上班记录，并且记录时间比现在早，不更新上班时间
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，上班时间不更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(
+                LOGGER.debug("上班时间不更新 原上班时间: " + str(one[3]) + ", 新上班时间: " + str(
                     datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                                 month=datetime.date.today().month,
                                                                 day=datetime.date.today().day)))
 
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#addUNLockRecord : 在线模式，上班时间插入异常 Exception = " + str(e))
-        LOGGER.error("Method = sql#addUNLockRecord : 在线模式，上班时间插入异常  当前时间 " + str(
+        LOGGER.error("上班时间插入异常 Exception = " + str(e))
+        LOGGER.error("上班时间插入异常  当前时间 " + str(
             datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                         month=datetime.date.today().month,
                                                         day=datetime.date.today().day)))
@@ -269,7 +269,7 @@ def addUNLockRecord(database, user_id):
 
 # 追加屏幕锁定记录
 def addLockRecord(database, user_id):
-    LOGGER.debug("Method = sql#addLockRecord : 在线模式，追加屏幕锁定记录: user_id: " + str(user_id) + ", Time: " + str(
+    LOGGER.debug("追加屏幕锁定记录: user_id: " + str(user_id) + ", Time: " + str(
         datetime.datetime.now()))
     try:
         db = pymysql.connect(host=database.host,
@@ -296,20 +296,20 @@ def addLockRecord(database, user_id):
                                                                                        day=datetime.date.today().day)):
                 cursor.execute(UPDATE_END_TIME, [datetime.datetime.now().time(), user_id, datetime.date.today()])
                 db.commit()
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(
+                LOGGER.debug("下班时间更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(
                     datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                                 month=datetime.date.today().month,
                                                                 day=datetime.date.today().day)))
             else:
-                LOGGER.debug("Method = sql#addUNLockRecord : 在线模式，下班时间不更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(
+                LOGGER.debug("下班时间不更新 原下班时间: " + str(one[4]) + ", 新下班时间: " + str(
                     datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                                 month=datetime.date.today().month,
                                                                 day=datetime.date.today().day)))
 
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#addLockRecord : 在线模式，下班记录更新异常 Exception = " + str(e))
-        LOGGER.error("Method = sql#addLockRecord : 在线模式，下班记录更新异常  当前时间 " + str(
+        LOGGER.error("下班记录更新异常 Exception = " + str(e))
+        LOGGER.error("下班记录更新异常  当前时间 " + str(
             datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                         month=datetime.date.today().month,
                                                         day=datetime.date.today().day)))
@@ -332,11 +332,11 @@ def insert_tenant(database, user):
         # 查找所有租户
         cursor.execute(INSERT_TENANT, [user.tenant, user.id, None])
         db.commit()
-        LOGGER.error("Method = sql#find_tenants : 在线模式，插入新租户 租户 ： " + user.tenant)
+        LOGGER.error("插入新租户 租户 ： " + user.tenant)
 
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#find_tenants : 在线模式，插入新租户异常 Exception = " + str(e))
+        LOGGER.error("插入新租户异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()
@@ -361,10 +361,10 @@ def find_tenants(database):
 
         for one in result:
             tenants.append(one[0])
-        LOGGER.debug("Method = sql#find_tenants : 在线模式，查找所有租户 : " + str(tenants))
+        LOGGER.debug("查找所有租户 : " + str(tenants))
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#find_tenants : 在线模式，查找所有租户异常 Exception = " + str(e))
+        LOGGER.error("查找所有租户异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()
@@ -388,10 +388,10 @@ def find_tenant_by_name(database, name):
         tenant = cursor.fetchone()
 
         if tenant is None:
-            LOGGER.debug("Method = sql#find_tenant_by_name : 在线模式，查找租户不存在 : " + name)
+            LOGGER.debug("查找租户不存在 : " + name)
     except Exception as e:
         db.rollback()
-        LOGGER.error("Method = sql#tenant_exist_check : 在线模式，查找租户异常 Exception = " + str(e))
+        LOGGER.error("查找租户异常 Exception = " + str(e))
     finally:
         cursor.close()
         db.close()

@@ -35,8 +35,8 @@ class ConfigIni:
                 data = default
         except Exception as e:
             data = default
-            LOGGER.error("Method = ConfigIni#getConfig : ini 获取配置异常： section = " + section + " option = " + option)
-            LOGGER.error("Method = ConfigIni#getConfig : 异常信息： Exception = " + str(e))
+            LOGGER.error("ini 获取配置异常： section = " + section + " option = " + option)
+            LOGGER.error("异常信息： Exception = " + str(e))
         return data
 
     # 获取 section下所有数据
@@ -48,8 +48,8 @@ class ConfigIni:
                 tools = [default]
         except Exception as e:
             tools = [default]
-            LOGGER.error("Method = ConfigIni#getOptions : ini 获取配置异常： section = " + section)
-            LOGGER.error("Method = ConfigIni#getOptions : 异常信息： Exception = " + str(e))
+            LOGGER.error("ini 获取配置异常： section = " + section)
+            LOGGER.error("异常信息： Exception = " + str(e))
         return tools
 
     # 追加section
@@ -61,8 +61,8 @@ class ConfigIni:
             with open(log.CONFIG_FILE, "w+", encoding="utf-8") as f:
                 self.config.write(f)
         except Exception as e:
-            LOGGER.error("Method = ConfigIni#addSection : ini 获取配置异常： section = " + section)
-            LOGGER.error("Method = ConfigIni#addSection : 异常信息： Exception = " + str(e))
+            LOGGER.error("ini 获取配置异常： section = " + section)
+            LOGGER.error("异常信息： Exception = " + str(e))
 
     # 更新指定section的option
     def setOption(self, section, key, value):
@@ -74,8 +74,8 @@ class ConfigIni:
                 self.config.write(f)
         except Exception as e:
             LOGGER.error(
-                "Method = ConfigIni#setOption : ini 配置更新异常： section = " + section + " option: " + key + " value : " + value)
-            LOGGER.error("Method = ConfigIni#setOption : 异常信息： Exception = " + str(e))
+                "ini 配置更新异常： section = " + section + " option: " + key + " value : " + value)
+            LOGGER.error("异常信息： Exception = " + str(e))
 
 
 class MainWindow(QMainWindow, Main.Ui_MainWindow):
@@ -105,8 +105,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             self.thread.daemon = False
             self.thread.start()
         except Exception as e:
-            LOGGER.error("Method = MainWindow#__init__ : 线程启动异常")
-            LOGGER.error("Method = MainWindow#__init__ : 异常信息： Exception = " + str(e))
+            LOGGER.error("线程启动异常")
+            LOGGER.error("异常信息： Exception = " + str(e))
 
     # 信号与槽， 追加监听事件
     def singal_and_slot(self):
@@ -193,10 +193,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             tenants = sql.find_tenants(win_obj.database)
             self.tenant.addItems(tenants)
 
-        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 主体信息： + " + str(win_obj.__dict__))
-        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 用户信息： + " + str(win_obj.user.__dict__))
-        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 数据库信息： + " + str(win_obj.database.__dict__))
-        LOGGER.debug("Method = MainWindow#load_config : ini 配置取得 考勤信息： + " + str(win_obj.user.attendance.__dict__))
+        LOGGER.debug("ini 配置取得 主体信息： + " + str(win_obj.__dict__))
+        LOGGER.debug("ini 配置取得 用户信息： + " + str(win_obj.user.__dict__))
+        LOGGER.debug("ini 配置取得 数据库信息： + " + str(win_obj.database.__dict__))
+        LOGGER.debug("ini 配置取得 考勤信息： + " + str(win_obj.user.attendance.__dict__))
 
         return win_obj
 
@@ -211,10 +211,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             sql.insert_user(self.data.database, self.data.user)
             # 更新用户id
             self.data.user.id = sql.find_user_id_by_name_and_num(self.data.database, self.data.user)
-            LOGGER.debug("Method = MainWindow#load_config : 在线模式，判断用户为 新用户 id : " + str(self.data.user.id))
+            LOGGER.debug("判断用户为 新用户 id : " + str(self.data.user.id))
 
         else:
-            LOGGER.debug("Method = MainWindow#load_config : 在线模式，判断用户为 老用户 ： " + str(db_user))
+            LOGGER.debug("判断用户为 老用户 ： " + str(db_user))
             self.data.user.id = db_user[0]
 
     # 显示读取的数据
@@ -285,21 +285,21 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
     # 打开外部工具
     def open_exe_handler(self, exe):
-        LOGGER.debug("Method = MainWindow#open_exe_handler : 打开外部工具： + " + exe)
+        LOGGER.debug("打开外部工具： + " + exe)
         try:
             subprocess.run(exe)
         except Exception as e:
-            LOGGER.error("Method = MainWindow#open_exe_handler : 打开外部工具异常 Exception =  " + e)
+            LOGGER.error("打开外部工具异常 Exception =  " + e)
 
     # 追加外部配置
     def add_tool_handler(self):
         file, _ = QFileDialog.getOpenFileName(self, "选择文件", "C:\\", "All Files (*.exe *.html *.htm)")
         try:
             if file is not None and file != "":
-                LOGGER.debug("Method = MainWindow#add_tool_handler : 追加外部工具 工具 = " + file)
+                LOGGER.debug("追加外部工具 工具 = " + file)
                 self.config.setOption("external_tools", os.path.splitext(os.path.basename(file))[0], file)
         except Exception as e:
-            LOGGER.error("Method = MainWindow#add_tool_handler : 追加外部工具异常 Exception = " + str(e))
+            LOGGER.error("追加外部工具异常 Exception = " + str(e))
 
         finally:
             # 更新菜单栏
@@ -436,9 +436,9 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
             # 更新数据库信息
             self.db_data_update()
-            LOGGER.debug("Method = MainWindow#config_save_handler : 保存数据结束")
+            LOGGER.debug("保存数据结束")
         except Exception as e:
-            LOGGER.error("Method = MainWindow#config_save_handler : 保存数据异常 Exception = " + str(e))
+            LOGGER.error("保存数据异常 Exception = " + str(e))
         finally:
             #  重启程序
             # 清楚托盘图标
@@ -449,7 +449,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
                 common.remove_pid_file()
                 # 后台重启程序
                 p = sys.executable
-                LOGGER.debug("Method = MainWindow#config_save_handler : 程序重启 路径：" + str(p))
+                LOGGER.debug("程序重启 路径：" + str(p))
                 # os.execl(p, p, *sys.argv,"-m back")
                 os.execl(p, p, *sys.argv, "back")
             except Exception as e:
@@ -483,11 +483,11 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             sql.insert_user(self.data.database, self.data.user)
             # 取得新用户id
             self.data.user.id = sql.find_user_id_by_name_and_num(self.data.database, self.data.user)
-            LOGGER.debug("Method = MainWindow#db_data_update : 在线模式，保存新用户 id : " + self.data.user.id)
+            LOGGER.debug("保存新用户 id : " + self.data.user.id)
 
         else:
             tmp_user = sql.find_user_by_name_and_num(self.data.database, self.data.user)
-            LOGGER.debug("Method = MainWindow#db_data_update : 在线模式，判断用户为 老用户 ： " + str(tmp_user))
+            LOGGER.debug("判断用户为 老用户 ： " + str(tmp_user))
             self.data.user.id = tmp_user[0]
 
         # 更新租户信息
@@ -496,7 +496,7 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
 
     # 退出 按钮事件
     def on_click_exit_handler(self):
-        LOGGER.debug("Method = MainWindow#on_click_cancel_handler : 程序正常退出")
+        LOGGER.debug("程序正常退出")
         # 删除pid 文件
         common.remove_pid_file()
         # 清空托盘图标
