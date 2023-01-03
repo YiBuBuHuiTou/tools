@@ -227,6 +227,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             LOGGER.debug("判断用户为 老用户 ： " + str(db_user))
             self.data.user.id = db_user[0]
 
+        # 更新租户信息
+        if sql.find_tenant_by_name(self.data.database, self.data.user.tenant) is None:
+            sql.insert_tenant(self.data.database, self.data.user)
+
     # 显示读取的数据
     def setDefaultData(self):
         # 周期
@@ -441,8 +445,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
             # 数据库密码
             self.config.setOption('database', 'password', self.db_password.text())
             self.data.database.password = self.db_password.text()
-            print("用户数据  ： " + str(self.data.user.__dict__))
-            print("用户数据  ： " + str(self.data.user.attendance.__dict__))
+            LOGGER.debug("用户数据  ： " + str(self.data.user.__dict__))
+            LOGGER.debug("用户数据  ： " + str(self.data.user.attendance.__dict__))
 
             # 更新数据库信息
             self.db_data_update()
@@ -488,15 +492,15 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         #     self.data.user.id = db_user[0]
 
         # 数据库用户不存在时 插入用户
-        result = sql.update_user(self.data.database, self.data.user)
-        if result == 0:
+        tmp_user = sql.find_user_by_name_and_num(self.data.database, self.data.user)
+        if tmp_user is None:
             sql.insert_user(self.data.database, self.data.user)
             # 取得新用户id
             self.data.user.id = sql.find_user_id_by_name_and_num(self.data.database, self.data.user)
-            LOGGER.debug("保存新用户 id : " + self.data.user.id)
+            LOGGER.debug("保存新用户 id : " + str(self.data.user.id))
 
         else:
-            tmp_user = sql.find_user_by_name_and_num(self.data.database, self.data.user)
+            result = sql.update_user(self.data.database, self.data.user)
             LOGGER.debug("判断用户为 老用户 ： " + str(tmp_user))
             self.data.user.id = tmp_user[0]
 

@@ -116,7 +116,7 @@ def insert_user(database, user):
 
 # 更新新用户 数据
 def update_user(database, user):
-    result = None
+    result = 0
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
