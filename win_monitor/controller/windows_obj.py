@@ -56,6 +56,7 @@ class WinObj:
         self.delay = None
         self.tenants = None
         self.local_data = log.DEFAULT_DATA_DIR
+        self.multi_user = 1
         self.user = User()
         self.mode = Mode.OFFLINE.name
         self.remind = Remind.TRUE.name

@@ -145,6 +145,8 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
         win_obj.delay = int(self.config.getConfig('default', 'delay', default=0))
         # log 文件
         win_obj.local_data = self.config.getConfig('default', 'local_data', default=log.DEFAULT_DATA_DIR)
+        # 多用户
+        win_obj.multi_user = int(self.config.getConfig('default', 'multi_user', default= 1))
 
         # 基本信息
         # 用户名
