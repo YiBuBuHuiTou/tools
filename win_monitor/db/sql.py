@@ -285,7 +285,7 @@ def addLockRecord(database, user_id):
         # 今天没有上班记录（昨天通宵了？）
         if one is None:
             cursor.execute(INSERT_RECORD,
-                           [user_id, datetime.date.today(), datetime.date.today(), datetime.datetime.now().time(), None,
+                           [user_id, datetime.date.today(), None, datetime.datetime.now().time(), None,
                             None, None, 0,
                             None])
             db.commit()
