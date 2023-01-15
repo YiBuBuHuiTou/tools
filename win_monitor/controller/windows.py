@@ -303,7 +303,10 @@ class MainWindow(QMainWindow, Main.Ui_MainWindow):
     def open_exe_handler(self, exe):
         LOGGER.debug("打开外部工具： + " + exe)
         try:
-            subprocess.run(exe)
+            # subprocess.run(exe)
+            th = action.CustomTask(subprocess.run, exe)
+            th.daemon = False
+            th.start()
         except Exception as e:
             LOGGER.error("打开外部工具异常 Exception =  " + e)
 

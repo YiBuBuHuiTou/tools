@@ -96,3 +96,14 @@ def isLocked(multi=1):
                 break
 
     return lockFlag
+
+
+# 自定义线程
+class CustomTask(threading.Thread):
+    def __init__(self, fun, *args):
+        threading.Thread.__init__(self)
+        self.fun = fun
+        self.args = args
+
+    def run(self):
+        self.fun(self.args)
