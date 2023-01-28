@@ -63,6 +63,9 @@ FIND_TENANT_BY_NAME = "select * from tenant where name = %s"
 # 根据名字和工号查找用户
 def find_user_by_name_and_num(database, user):
     result = None
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -90,6 +93,9 @@ def find_user_by_name_and_num(database, user):
 # 插入用户
 def insert_user(database, user):
     result = None
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -117,6 +123,9 @@ def insert_user(database, user):
 # 更新新用户 数据
 def update_user(database, user):
     result = 0
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -145,6 +154,9 @@ def update_user(database, user):
 # 查找用户id
 def find_user_id_by_name_and_num(database, user):
     user_id = None
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -181,6 +193,10 @@ def user_regist(win_obj):
     user = win_obj.user
     attendance = win_obj.attendance
     one = None
+
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=win_obj.database.host,
                              port=int(win_obj.database.port),
@@ -219,6 +235,10 @@ def addUNLockRecord(database, user_id):
     LOGGER.debug("追加屏幕登录记录:  user_id: " + str(user_id) + ", Time: " + str(
         datetime.datetime.now()))
     one = None
+
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -271,6 +291,9 @@ def addUNLockRecord(database, user_id):
 def addLockRecord(database, user_id):
     LOGGER.debug("追加屏幕锁定记录: user_id: " + str(user_id) + ", Time: " + str(
         datetime.datetime.now()))
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -321,6 +344,10 @@ def addLockRecord(database, user_id):
 # 插入tenant
 def insert_tenant(database, user):
     tenants = []
+
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -347,6 +374,10 @@ def insert_tenant(database, user):
 # 查找所有tenant
 def find_tenants(database):
     tenants = []
+
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -375,6 +406,10 @@ def find_tenants(database):
 # 根据租户查找数据
 def find_tenant_by_name(database, name):
     tenant = None
+
+    db = None
+    cursor = None
+
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
