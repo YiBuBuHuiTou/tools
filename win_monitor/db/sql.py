@@ -60,6 +60,27 @@ FIND_TENANTS = "select name from tenant"
 FIND_TENANT_BY_NAME = "select * from tenant where name = %s"
 
 
+# 测试数据库是否能正常连接
+def test_connect(database, user):
+    db = None
+    try:
+        db = pymysql.connect(host=database.host,
+                             port=int(database.port),
+                             user=database.username,
+                             password=database.password,
+                             database=database.database,
+                             charset='utf8')
+        return True
+    except Exception as e:
+        LOGGER.error("测试数据库是否能正常连接 Exception = " + str(e))
+    finally:
+        # 关闭db
+        if db is not None:
+            db.close()
+
+    return False
+
+
 # 根据名字和工号查找用户
 def find_user_by_name_and_num(database, user):
     result = None
@@ -81,11 +102,17 @@ def find_user_by_name_and_num(database, user):
             LOGGER.debug(
                 "查找用户不存在 : " + user.user_name + ": " + user.job_number)
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("查找用户异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
     return result
 
@@ -111,11 +138,17 @@ def insert_user(database, user):
         db.commit()
 
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("插入用户异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
     return result
 
@@ -142,11 +175,17 @@ def update_user(database, user):
         db.commit()
 
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("更新用户数据异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
     return result
 
@@ -156,7 +195,6 @@ def find_user_id_by_name_and_num(database, user):
     user_id = None
     db = None
     cursor = None
-
     try:
         db = pymysql.connect(host=database.host,
                              port=int(database.port),
@@ -175,11 +213,17 @@ def find_user_id_by_name_and_num(database, user):
         else:
             user_id = result[0]
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("查找用户异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
     return user_id
 
@@ -219,11 +263,18 @@ def user_regist(win_obj):
             LOGGER.debug("判断用户为 老用户")
 
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("新用户插入异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
+
     # 返回user_id 主键
     LOGGER.debug("用户信息 = " + str(one))
     user.id = one[0]
@@ -234,8 +285,6 @@ def user_regist(win_obj):
 def addUNLockRecord(database, user_id):
     LOGGER.debug("追加屏幕登录记录:  user_id: " + str(user_id) + ", Time: " + str(
         datetime.datetime.now()))
-    one = None
-
     db = None
     cursor = None
 
@@ -276,15 +325,21 @@ def addUNLockRecord(database, user_id):
                                                                 day=datetime.date.today().day)))
 
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("上班时间插入异常 Exception = " + str(e))
         LOGGER.error("上班时间插入异常  当前时间 " + str(
             datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                         month=datetime.date.today().month,
                                                         day=datetime.date.today().day)))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
 
 # 追加屏幕锁定记录
@@ -330,15 +385,21 @@ def addLockRecord(database, user_id):
                                                                 day=datetime.date.today().day)))
 
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("下班记录更新异常 Exception = " + str(e))
         LOGGER.error("下班记录更新异常  当前时间 " + str(
             datetime.datetime.now() - datetime.datetime(year=datetime.date.today().year,
                                                         month=datetime.date.today().month,
                                                         day=datetime.date.today().day)))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
 
 # 插入tenant
@@ -362,11 +423,17 @@ def insert_tenant(database, user):
         LOGGER.error("插入新租户 租户 ： " + user.tenant)
 
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("插入新租户异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
     return tenants
 
@@ -394,11 +461,17 @@ def find_tenants(database):
             tenants.append(one[0])
         LOGGER.debug("查找所有租户 : " + str(tenants))
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("查找所有租户异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
     return tenants
 
@@ -425,10 +498,16 @@ def find_tenant_by_name(database, name):
         if tenant is None:
             LOGGER.debug("查找租户不存在 : " + name)
     except Exception as e:
-        db.rollback()
+        # 数据库回滚
+        if db is not None:
+            db.rollback()
+
         LOGGER.error("查找租户异常 Exception = " + str(e))
     finally:
-        cursor.close()
-        db.close()
+        # 关闭数据库连接
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
     return tenant
