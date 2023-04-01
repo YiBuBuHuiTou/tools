@@ -1,13 +1,19 @@
-# excel 行对象
+import hashlib
 
-class Record:
+
+# excel 行对象
+class Records:
 
     # 动态接受收不定参数主键以及字典
-    def __init__(self,*primary_keys, df):
+    def __init__(self,*primary_keys,title, df):
         # 主键列表
         self.primary_keys = primary_keys
+        #attr_names
+        self.attr_names = title
         # DataFrame
         self.dataFrame = df
+        #转换后的数据
+        self.records = []
 
     # 判断是否是同一条数据
     def is_same_key(self, another):
@@ -20,12 +26,17 @@ class Record:
             if cell != another.attrs.get(primary_key):
                 result = False
                 break
-
         return result
 
+    # 根据主键对应属性值生成id
+    def generate_id(self, ):
+        return hashlib.md5(str.encode()).hexdigest()
 
-    # 当数据不想同时，更新数据（合并两个对象的差异）
-    def updateRecord(self, another):
+    def compare(self,another_records):
         pass
 
 
+
+    # 当数据不想同时，更新数据（合并两个对象的差异）
+    def updateRecords(self, another):
+        pass

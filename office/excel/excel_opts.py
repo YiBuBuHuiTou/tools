@@ -1,10 +1,6 @@
 # excel 操作处理
-import getopt
-import os.path
-import sys
 import pandas as pd
-import re
-import record
+from office.excel.model import records
 
 SUFFIX = r'-unique'
 TITLE = 0
@@ -27,16 +23,16 @@ def analyze_excel_title(template):
     for col in df.iloc[TITLE].tolist():
         str_col = str(col)
         if str_col.endswith(SUFFIX):
-            primary_keys.append(str_col[:len(str_col)-len(SUFFIX)])
-            cols.append(str_col[:len(str_col)-len(SUFFIX)])
+            primary_keys.append(str_col[:len(str_col) - len(SUFFIX)])
+            cols.append(str_col[:len(str_col) - len(SUFFIX)])
         else:
             cols.append(str_col)
 
 
 # 将excel 转换为record对象
-def convert2record(file):
+def convert2records(file):
     df = load_excel(file)
-    return record.Record(primary_keys, df = df)
+    return records.Records(primary_keys, title=cols, df=df)
 
 
 def compare_excel(file1, file2):
@@ -50,7 +46,7 @@ def compare_excel(file1, file2):
     # 将不同的地方标记为红色
     style = diff.style.applymap(lambda x: "background-color: red" if x else "")
     # 将标记后的结果保存到一个新的excel文件中
-    style.to_excel("diff.xlsx")   # 输出为一个2为TRUE FALSE的矩阵
+    style.to_excel("diff.xlsx")  # 输出为一个2为TRUE FALSE的矩阵
 
 
 if __name__ == '__main__':
@@ -89,7 +85,9 @@ if __name__ == '__main__':
     #     else:
     #         print("参数异常")
 
-    analyze_excel_title("test1.xlsx")
-    print(convert2record("test1.xlsx"))
+    analyze_excel_title("test/test1.xlsx")
+    print(convert2records("test/test1.xlsx"))
     print(cols)
     print(primary_keys)
+
+    print(load_excel("test/test1.xlsx"))
