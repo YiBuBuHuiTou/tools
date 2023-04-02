@@ -2,37 +2,34 @@
 import pandas as pd
 from office.excel.model import records
 
-SUFFIX = r'-unique'
-TITLE = 0
-# 定义标题行的列
-cols = []
-# 定义主键列表
-primary_keys = []
-
-
 # 将excel 转换成DataFrame
 def load_excel(file):
-    return pd.read_excel(file, header=None)
-
+    df = pd.read_excel(file, header=None).fillna("")
+    # 将title行作为DataFrame的列属性
+    df.columns = df.iloc[records.TITLE]
+    # 返回TITLE行之后的数据
+    return df.iloc[records.TITLE + 1:]
+    # 返回所有数据
+    #return df
 
 # 解析模板第一行标题
 def analyze_excel_title(template):
     # 获取DataFrame 对象
     df = load_excel(template)
     # 循环所有的列
-    for col in df.iloc[TITLE].tolist():
+    for col in df.iloc[records.TITLE].tolist():
         str_col = str(col)
-        if str_col.endswith(SUFFIX):
-            primary_keys.append(str_col[:len(str_col) - len(SUFFIX)])
-            cols.append(str_col[:len(str_col) - len(SUFFIX)])
+        if str_col.endswith(records.SUFFIX):
+            records.primary_keys.append(str_col[:len(str_col) - len(records.SUFFIX)])
+            records.cols.append(str_col[:len(str_col) - len(records.SUFFIX)])
         else:
-            cols.append(str_col)
+            records.cols.append(str_col)
 
 
 # 将excel 转换为record对象
 def convert2records(file):
     df = load_excel(file)
-    return records.Records(primary_keys, title=cols, df=df)
+    return records.Records(records.primary_keys, df=df)
 
 
 def compare_excel(file1, file2):
@@ -87,7 +84,8 @@ if __name__ == '__main__':
 
     analyze_excel_title("test/test1.xlsx")
     print(convert2records("test/test1.xlsx"))
-    print(cols)
-    print(primary_keys)
-
-    print(load_excel("test/test1.xlsx"))
+    print(records.cols)
+    print(records.primary_keys)
+    # print(load_excel("test/test1.xlsx"))
+    #
+    # print(load_excel("test/test1.xlsx").to_dict("records"))
