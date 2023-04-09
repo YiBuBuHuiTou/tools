@@ -17,13 +17,8 @@ def analyze_excel_title(template):
     # 获取DataFrame 对象
     df = load_excel(template)
     # 循环所有的列
-    for col in df.iloc[records.TITLE].tolist():
-        str_col = str(col)
-        if str_col.endswith(records.SUFFIX):
-            records.primary_keys.append(str_col[:len(str_col) - len(records.SUFFIX)])
-            records.cols.append(str_col[:len(str_col) - len(records.SUFFIX)])
-        else:
-            records.cols.append(str_col)
+    for column in df.columns:
+        records.cols.append(column)
 
 
 # 将excel 转换为record对象
@@ -83,9 +78,9 @@ if __name__ == '__main__':
     #         print("参数异常")
 
     analyze_excel_title("test/test1.xlsx")
-    print(convert2records("test/test1.xlsx"))
     print(records.cols)
     print(records.primary_keys)
+    print(convert2records("test/test1.xlsx"))
     # print(load_excel("test/test1.xlsx"))
     #
     # print(load_excel("test/test1.xlsx").to_dict("records"))
